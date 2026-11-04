@@ -1,0 +1,7 @@
+app/build/
+tools/probe/build/
+dist/
+*.pkg
+*.dmg
+*.fsmix
+.DS_Store
