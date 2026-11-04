@@ -8,7 +8,8 @@
     <license file="LICENSE.txt"/>
     <options customize="allow" require-scripts="true" rootVolumeOnly="true" hostArchitectures="x86_64,arm64"/>
     <allowed-os-versions>
-        <os-version min="12.0"/>
+        <!-- macOS 26 removed IOFireWireFamily: neither the drivers nor the app can work there. -->
+        <os-version min="12.0" before="26.0"/>
     </allowed-os-versions>
 
     <choices-outline>

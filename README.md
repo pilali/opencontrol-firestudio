@@ -1,6 +1,6 @@
 # OpenControl for PreSonus FireStudio
 
-**Free software to control the DSP mixer of the original PreSonus FireStudio 26x26 (2008) on modern macOS.**
+**Free software to control the DSP mixer of the original PreSonus FireStudio 26x26 (2008) on macOS 12 – 15.**
 A replacement for FireControl / Universal Control, which no longer support this interface.
 
 PreSonus ended support for the FireStudio 26x26 in 2015. With the FireWire drivers of a newer PreSonus
@@ -18,6 +18,11 @@ zero-latency monitoring, output routing and headphone feeds. OpenControl fills t
 - **Automatic backup** of the full device state on every connection, with restore
 - Scroll wheel for fine steps (±0.375 dB, ⇧ ×8), ⌥-drag for fine adjustment, double-click to reset to 0 dB / center
 
+## Requirements
+
+**macOS 12 – 15.** OpenControl talks to the device through Apple's `IOFireWireFamily`, which macOS 26 Tahoe
+removed. It therefore does not run on macOS 26, nor on top of ASFireWire (see below).
+
 ## Tested hardware and systems
 
 | | |
@@ -27,7 +32,11 @@ zero-latency monitoring, output routing and headphone feeds. OpenControl fills t
 | Drivers | PreSonus FireWire 4.2.1 (from Universal Control 3.4.2) |
 
 **Apple Silicon**: the app is a Universal Binary, but the PreSonus kext is x86_64 only.
-FireWire support on Apple Silicon has not been verified.
+OpenControl has not been tested on Apple Silicon.
+
+**macOS 26 / Apple Silicon**: for audio on these systems, see [ASFireWire](https://github.com/mrmidi/ASFireWire).
+It restores FireWire with DriverKit, and the FireStudio 2626 has been reported working with it
+([issue #189](https://github.com/mrmidi/ASFireWire/issues/189)). Control of the DSP mixer is not available there yet.
 
 ## Installation
 
@@ -84,6 +93,11 @@ OpenControl is an independent project, **not affiliated with or endorsed by PreS
 "FireStudio" and "Universal Control" are trademarks of their respective owners. The protocol was documented
 for interoperability with hardware that is no longer supported. The software comes with no warranty. It only
 writes mixer parameters, and it backs up the device state before any change.
+
+## Related projects
+
+- [ASFireWire](https://github.com/mrmidi/ASFireWire): FireWire stack for macOS 26 and Apple Silicon (DriverKit), including DICE audio.
+- [FFADO](https://ffado.org) and the Linux `snd-dice` driver: documentation of the DICE chip.
 
 ## Acknowledgements
 
