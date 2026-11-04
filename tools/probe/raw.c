@@ -4,7 +4,7 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/firewire/IOFireWireLib.h>
 #include <libkern/OSByteOrder.h>
-// raw <addrLo> <maxquads> : imprime "index valeur" jusqu'à la première erreur (lecture seule)
+// raw <addrLo> <maxquads>: prints "index value" until the first error (read only)
 int main(int c,char**v){
   CFMutableDictionaryRef m=IOServiceMatching("IOFireWireDevice"); int vd=0xa92;
   CFDictionarySetValue(m,CFSTR("Vendor_ID"),CFNumberCreate(NULL,kCFNumberIntType,&vd));

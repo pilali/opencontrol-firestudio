@@ -42,7 +42,7 @@ installer, checks their PreSonus signature and version, and packages them unmodi
    ```sh
    installer/build-installer.sh ~/Downloads/PreSonus_UniversalControl_v3_4_2_63992.dmg
    ```
-3. Open `dist/OpenControl-FireStudio-<version>-complet.pkg`. If macOS asks, allow the PreSonus system
+3. Open `dist/OpenControl-FireStudio-<version>-full.pkg`. If macOS asks, allow the PreSonus system
    extension in *Security & Privacy*, then restart.
 
 The resulting installer contains PreSonus drivers: keep it for your own use and do not redistribute it.
@@ -59,6 +59,16 @@ cd app
 make ARCHS="x86_64 arm64"   # Universal Binary
 make install                # copies the app to /Applications
 ```
+
+## Languages
+
+The app follows the macOS system language and falls back to English when that language is not included.
+Included: English, Čeština, Dansk, Deutsch, Español, Français, Italiano, Magyar, Nederlands, Norsk bokmål,
+Polski, Português (Brasil), Português (Portugal), Română, Suomi, Svenska, Türkçe.
+
+Translations live in `app/Resources/<lang>.lproj/Localizable.strings`. The keys are the English texts.
+Corrections from native speakers are welcome. `tools/check_l10n.py` (run by the CI) checks that every
+language has every key, with matching format specifiers.
 
 ## How it works
 

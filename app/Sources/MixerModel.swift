@@ -1,11 +1,11 @@
 import Foundation
 import Combine
 
-/// Image locale de la zone mixeur + communication avec l'appareil.
+/// Local image of the mixer area + communication with the device.
 final class MixerModel: ObservableObject {
     @Published private(set) var connected = false
-    @Published private(set) var status = "Recherche de la FireStudio…"
-    /// Pas @Published : on notifie à la main, et pas pendant un glisser (sinon toute la fenêtre est redessinée).
+    @Published private(set) var status = L("Searching for the FireStudio…")
+    /// Not @Published: changes are announced by hand, and not during a drag (otherwise the whole window redraws).
     private(set) var regs = [UInt32](repeating: 0, count: Reg.quadlets)
     let meterStore = MeterStore.shared
     private var meterBusy = false
@@ -14,7 +14,7 @@ final class MixerModel: ObservableObject {
     @Published var selectedMix = 0
 
     private let io = DispatchQueue(label: "firestudio.io")
-    private var pending: [UInt32: UInt32] = [:]     // écritures en attente (dernière valeur par adresse)
+    private var pending: [UInt32: UInt32] = [:]     // pending writes (latest value per address)
     private var flushScheduled = false
     private var meterTimer: Timer?
     private var reconnectTimer: Timer?
@@ -30,28 +30,28 @@ final class MixerModel: ObservableObject {
         }
     }
 
-    // MARK: Connexion
+    // MARK: Connection
 
     func connect() {
         io.async {
             let o = fs_open()
             guard o == 0 else {
-                let msg = o == -4 ? "FireStudio occupée par un autre programme (accès exclusif)"
-                                  : "FireStudio introuvable (vérifie le câble / l'adaptateur)"
+                let msg = o == -4 ? L("FireStudio in use by another program (exclusive access)")
+                                  : L("FireStudio not found (check the cable or adapter)")
                 DispatchQueue.main.async { self.status = msg }
                 return
             }
             var buf = [UInt32](repeating: 0, count: Reg.quadlets)
             let r = fs_read(0, &buf, UInt32(Reg.quadlets))
             var rate: UInt32 = 0
-            _ = fs_read_abs(0xE0000000 + 0x28 + 0x5C, &rate)    // DICE global : sample rate
+            _ = fs_read_abs(0xE0000000 + 0x28 + 0x5C, &rate)    // DICE global section: sample rate
             DispatchQueue.main.async {
-                if r != 0 { self.status = "Erreur de lecture (\(r))"; fs_close(); return }
+                if r != 0 { self.status = L("Read error (%d)", Int(r)); fs_close(); return }
                 self.objectWillChange.send()
                 self.regs = buf
                 self.sampleRate = Int(rate)
                 self.connected = true
-                self.status = "Connectée"
+                self.status = L("Connected")
                 self.lastBackup = Backup.save(buf)
             }
         }
@@ -67,12 +67,12 @@ final class MixerModel: ObservableObject {
 
     private func lost(_ code: Int32) {
         connected = false
-        status = "Connexion perdue (\(code)) — nouvelle tentative…"
+        status = L("Connection lost (%d) — retrying…", Int(code))
         io.async { fs_close() }
     }
 
     private func pollMeters() {
-        guard connected, !meterBusy else { return }   // pas d'empilement si le bus est lent
+        guard connected, !meterBusy else { return }   // never pile up requests if the bus is slow
         meterBusy = true
         io.async {
             var q = [UInt32](repeating: 0, count: Int(Reg.meterQuadlets))
@@ -84,11 +84,11 @@ final class MixerModel: ObservableObject {
         }
     }
 
-    // MARK: Accès registres
+    // MARK: Register access
 
     func reg(_ off: UInt32) -> UInt32 { regs[Int(off / 4)] }
 
-    /// `publish: false` pendant un glisser : la carte reçoit la valeur, l'interface n'est pas redessinée.
+    /// `publish: false` during a drag: the device gets the value, the UI is not redrawn.
     func set(_ off: UInt32, _ value: UInt32, publish: Bool = true) {
         guard Reg.writableRange.contains(off), off % 4 == 0 else { return }
         if publish { objectWillChange.send() }
@@ -98,11 +98,11 @@ final class MixerModel: ObservableObject {
             self.pending[off] = value
             guard !self.flushScheduled else { return }
             self.flushScheduled = true
-            self.io.asyncAfter(deadline: .now() + 0.04) { self.flush() }
+            self.io.asyncAfter(deadline: .now() + 0.04) { self.flush() }   // at most ~25 writes/s
         }
     }
 
-    private func flush() {                         // sur la file io
+    private func flush() {                         // runs on the io queue
         flushScheduled = false
         let batch = pending; pending.removeAll()
         for (off, v) in batch.sorted(by: { $0.key < $1.key }) {
@@ -111,7 +111,7 @@ final class MixerModel: ObservableObject {
         }
     }
 
-    // MARK: Noms
+    // MARK: Names
 
     func name(_ index: Int) -> String {
         let base = Int(Reg.namesBase / 4) + index * 3
@@ -123,9 +123,9 @@ final class MixerModel: ObservableObject {
     }
     func inputName(_ ch: Int) -> String { name(ch) }
     func playbackName(_ ch: Int) -> String { name(18 + ch) }
-    func mixName(_ m: Int) -> String { name(36 + m).isEmpty ? "Mix \(m + 1)" : name(36 + m) }
+    func mixName(_ m: Int) -> String { name(36 + m).isEmpty ? L("Mix %d", m + 1) : name(36 + m) }
 
-    // MARK: Tranches
+    // MARK: Strips
 
     enum Kind { case input, playback, output }
 
@@ -154,7 +154,7 @@ final class MixerModel: ObservableObject {
         }
         let v = reg(off)
         set(off, on ? v | bit : v & ~bit)
-        if on {   // aligne le canal droit sur le gauche
+        if on {   // align the right channel on the left one
             let l = stripBase(kind, pair * 2, mix: mix), r = stripBase(kind, pair * 2 + 1, mix: mix)
             set(r + Reg.level, reg(l + Reg.level))
             set(r + Reg.flags, reg(l + Reg.flags))
@@ -183,12 +183,12 @@ final class MixerModel: ObservableObject {
         let on = !flag(kind, ch, mix: mix, f)
         for c in [ch] + (partner(kind, ch, mix: mix).map { [$0] } ?? []) {
             let off = stripBase(kind, c, mix: mix) + Reg.flags
-            // Le firmware d'origine écrit soit 1 (mute) soit 2 (solo) : on garde un seul état à la fois.
+            // The original firmware writes either 1 (mute) or 2 (solo): keep a single state at a time.
             set(off, on ? f : 0)
         }
     }
 
-    /// Désactive tous les solos du mix courant (bouton « Solo Off » de FireControl).
+    /// Clears every solo of the current mix (FireControl's "Solo Off" button).
     func clearSolos(mix: Int) {
         for ch in 0..<18 {
             for kind in [Kind.input, .playback] where flag(kind, ch, mix: mix, Reg.flagSolo) {
@@ -197,12 +197,12 @@ final class MixerModel: ObservableObject {
         }
     }
 
-    // MARK: Routage
+    // MARK: Routing
 
     func outputSource(_ out: Int) -> Int { Int(reg(Reg.outputSource(out))) }
     func setOutputSource(_ out: Int, _ src: Int) { set(Reg.outputSource(out), UInt32(src)) }
 
-    /// Affecte une source stéréo à une paire de sorties (comme FireControl : L sur la sortie paire, R sur l'impaire).
+    /// Assigns a stereo source to an output pair (as FireControl does: L on the even output, R on the odd one).
     func setPairSource(pair: Int, left: Int) {
         setOutputSource(pair * 2, left)
         setOutputSource(pair * 2 + 1, left + 1)
@@ -220,23 +220,23 @@ final class MixerModel: ObservableObject {
     // Main / Phones
     func monitorPair(_ idx: Int) -> Int { Int(reg(Reg.monitorSource(idx))) / 2 }
     func setMonitorPair(_ idx: Int, _ pair: Int) { set(Reg.monitorSource(idx), UInt32(pair * 2)) }
-    /// nil = pas de remplacement, sinon numéro de mix (0-8).
+    /// nil = no override, otherwise mix number (0-8).
     func monitorOverride(_ idx: Int) -> Int? {
         let v = reg(Reg.monitorOverride(idx))
         return (v == 0 || v == 0xFF) ? nil : Int(v) - 1
     }
     func setMonitorOverride(_ idx: Int, _ mix: Int?) { set(Reg.monitorOverride(idx), mix.map { UInt32($0 + 1) } ?? 0) }
 
-    // MARK: Réglages
+    // MARK: Settings
 
     func bool(_ off: UInt32) -> Bool { reg(off) != 0 }
     func setBool(_ off: UInt32, _ on: Bool) { set(off, on ? 1 : 0) }
 
-    // MARK: Sauvegardes
+    // MARK: Backups
 
-    /// Réécrit les paramètres d'une sauvegarde (uniquement les mots qui diffèrent).
+    /// Writes back the parameters of a backup (only the words that differ).
     func restore(from url: URL) -> String {
-        guard let saved = Backup.load(url) else { return "Fichier illisible" }
+        guard let saved = Backup.load(url) else { return L("Unreadable file") }
         var n = 0
         var off = Reg.writableRange.lowerBound
         while off < Reg.writableRange.upperBound {
@@ -244,22 +244,22 @@ final class MixerModel: ObservableObject {
             if v != reg(off) { set(off, v); n += 1 }
             off += 4
         }
-        return "\(n) paramètres restaurés"
+        return L("%d parameters restored", n)
     }
 }
 
-/// Vu-mètres : hors de SwiftUI. Chaque MeterNSView s'abonne et ne se redessine que si ses LED changent.
+/// Meters live outside SwiftUI: each MeterNSView subscribes and redraws only when its LEDs change.
 final class MeterStore {
     static let shared = MeterStore()
     static let leds = 28
-    private(set) var levels = [Int](repeating: 0, count: 60)   // nombre de LED allumées
+    private(set) var levels = [Int](repeating: 0, count: 60)   // number of lit LEDs
     private(set) var peaks = [Int](repeating: 0, count: 60)
     private var holdUntil = [Date](repeating: .distantPast, count: 60)
     private let views = NSHashTable<MeterNSView>.weakObjects()
 
     func register(_ v: MeterNSView) { views.add(v) }
 
-    /// Octets bruts (≈ 0x20 au repos, ≈ 0xA8 avec une guitare sur IN1).
+    /// Raw bytes (≈ 0x20 at rest, ≈ 0xA8 with a guitar played on IN1).
     func update(_ b: [UInt8]) {
         let now = Date()
         for i in 0..<min(60, b.count) {
@@ -275,20 +275,39 @@ final class MeterStore {
 }
 
 enum Backup {
-    static var folder: URL {
+    /// ~/Library/Application Support/FireStudioMixer
+    static var appSupport: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let url = base.appendingPathComponent("FireStudioMixer/Sauvegardes", isDirectory: true)
+        return base.appendingPathComponent("FireStudioMixer", isDirectory: true)
+    }
+
+    static var folder: URL {
+        let url = appSupport.appendingPathComponent("Backups", isDirectory: true)
+        migrate(from: appSupport.appendingPathComponent("Sauvegardes", isDirectory: true), to: url)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
 
+    /// Renames a folder created by the first (French-only) versions, without ever overwriting anything.
+    static func migrate(from old: URL, to new: URL) {
+        let fm = FileManager.default
+        if fm.fileExists(atPath: old.path) && !fm.fileExists(atPath: new.path) {
+            try? fm.moveItem(at: old, to: new)
+        }
+    }
+
     static func save(_ regs: [UInt32], name: String? = nil) -> URL? {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd_HH-mm-ss"; f.locale = Locale(identifier: "en_US_POSIX")
         let url = folder.appendingPathComponent((name ?? "auto_" + f.string(from: Date())) + ".fsmix")
-        let text = regs.enumerated().map { String(format: "%04x %08x", $0.offset * 4, $0.element) }.joined(separator: "\n")
-        do { try text.write(to: url, atomically: true, encoding: .utf8) } catch { return nil }
+        guard write(regs, to: url) else { return nil }
         prune()
         return url
+    }
+
+    @discardableResult
+    static func write(_ regs: [UInt32], to url: URL) -> Bool {
+        let text = regs.enumerated().map { String(format: "%04x %08x", $0.offset * 4, $0.element) }.joined(separator: "\n")
+        return (try? text.write(to: url, atomically: true, encoding: .utf8)) != nil
     }
 
     static func load(_ url: URL) -> [UInt32]? {
@@ -304,7 +323,7 @@ enum Backup {
         return count == Reg.quadlets ? regs : nil
     }
 
-    /// Ne garde que les 30 sauvegardes automatiques les plus récentes.
+    /// Keeps only the 30 most recent automatic backups.
     private static func prune() {
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil) else { return }

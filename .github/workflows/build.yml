@@ -23,28 +23,32 @@ jobs:
           swiftc --version
           echo "VERSION=$(cat VERSION)" >> "$GITHUB_ENV"
 
-      - name: Tag et fichier VERSION cohérents
+      - name: Tag matches the VERSION file
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          test "${GITHUB_REF_NAME#v}" = "$VERSION" || { echo "Tag $GITHUB_REF_NAME ≠ VERSION $VERSION"; exit 1; }
+          test "${GITHUB_REF_NAME#v}" = "$VERSION" || { echo "Tag $GITHUB_REF_NAME does not match VERSION $VERSION"; exit 1; }
 
-      - name: Application (Universal Binary)
+      - name: Localization check
+        run: python3 tools/check_l10n.py
+
+      - name: App (Universal Binary)
         run: make -C app ARCHS="x86_64 arm64" BUILD=${{ github.run_number }}
 
-      - name: Vérifier les architectures
+      - name: Check architectures
         run: |
           archs="$(lipo -archs "app/build/FireStudio Mixer.app/Contents/MacOS/FireStudioMixer")"
           echo "$archs"
           [[ "$archs" == *x86_64* && "$archs" == *arm64* ]]
 
-      - name: Paquets
+      - name: Packages
         run: make -C app pkg zip ARCHS="x86_64 arm64" BUILD=${{ github.run_number }}
 
-      - name: Outils de sonde et script d'installeur
+      - name: Probe tools and installer script
         run: |
           make -C tools/probe
           bash -n installer/build-installer.sh
           xmllint --noout installer/Distribution.xml
+          plutil -lint installer/resources/*.lproj/Localizable.strings
 
       - uses: actions/upload-artifact@v4
         with:
@@ -59,10 +63,10 @@ jobs:
         with:
           name: OpenControl for PreSonus FireStudio ${{ env.VERSION }}
           body: |
-            Application **FireStudio Mixer** (Universal Binary x86_64 + arm64), non notarisée : clic droit › Ouvrir au premier lancement.
+            **FireStudio Mixer** app (Universal Binary x86_64 + arm64), not notarized: right-click › Open on first launch.
 
-            Ces fichiers **ne contiennent pas** les drivers PreSonus. Pour un installeur complet (drivers + application),
-            voir la section « Installation A » du README : `installer/build-installer.sh <installeur Universal Control 3.4.2>`.
+            These files **do not contain** the PreSonus drivers. For a full installer (drivers + app),
+            see "Installation A" in the README: `installer/build-installer.sh <Universal Control 3.4.2 installer>`.
           files: |
             app/build/OpenControl-FireStudio-*-app.pkg
             app/build/OpenControl-FireStudio-*-app.zip

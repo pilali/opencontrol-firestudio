@@ -1,4 +1,4 @@
-// Lecture seule : quelles plages d'adresses répondent ?
+// Read only: which address ranges respond?
 #include <stdio.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOCFPlugIn.h>

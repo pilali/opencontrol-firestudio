@@ -61,11 +61,11 @@ int fs_read(uint32_t offset, uint32_t *out, uint32_t count) {
     int r = gDev ? 0 : -1;
     uint32_t done = 0;
     while (!r && done < count) {
-        uint32_t n = count - done; if (n > 16) n = 16;          /* blocs de 64 octets : les plus gros sont refusés */
+        uint32_t n = count - done; if (n > 16) n = 16;          /* 64-byte blocks */
         UInt32 buf[64]; UInt32 size = n * 4;
         FWAddress a = { 0, 0xFFFF, FS_MIXER_BASE + offset + done * 4 };
         IOReturn e = (*gDev)->Read(gDev, gSvc, &a, buf, &size, false, 0);
-        if (e || size != n * 4) {                                /* repli : quadlet par quadlet */
+        if (e || size != n * 4) {                                /* fallback: quadlet by quadlet */
             for (uint32_t i = 0; i < n && !r; i++) r = rq(FS_MIXER_BASE + offset + (done + i) * 4, &out[done + i]);
         } else {
             for (uint32_t i = 0; i < n; i++) out[done + i] = OSSwapBigToHostInt32(buf[i]);
@@ -77,7 +77,7 @@ int fs_read(uint32_t offset, uint32_t *out, uint32_t count) {
 }
 
 int fs_write(uint32_t offset, uint32_t value) {
-    /* Jamais au-delà des paramètres (en-tête, noms et vu-mètres exclus). */
+    /* Never beyond the parameters (header, names and meters are protected). */
     if ((offset & 3) || offset < 0x38 || offset >= 0x1168) return -10;
     pthread_mutex_lock(&gLock);
     int r = -1;

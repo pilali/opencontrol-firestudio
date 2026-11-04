@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Product definition of the full installer. Titles and descriptions are keys of
+     resources/<lang>.lproj/Localizable.strings; English is the fallback language. -->
 <installer-gui-script minSpecVersion="2">
-    <title>OpenControl for PreSonus FireStudio __VERSION__</title>
+    <title>TITLE</title>
     <welcome file="welcome.html" mime-type="text/html"/>
     <conclusion file="conclusion.html" mime-type="text/html"/>
     <license file="LICENSE.txt"/>
@@ -14,17 +16,15 @@
         <line choice="app"/>
     </choices-outline>
 
-    <choice id="drivers" title="Drivers FireWire PreSonus __DRIVER__"
-            description="Kext PaeFireStudio, démon et driver MIDI, extraits sans modification de l'installeur officiel Universal Control 3.4.2. Nécessite un Mac Intel. Un redémarrage et une autorisation dans Sécurité et confidentialité peuvent être demandés.">
+    <choice id="drivers" title="DRIVERS_TITLE" description="DRIVERS_DESC">
         <pkg-ref id="presonus.pkg.Universal.Control.fw_audio_driver"/>
         <pkg-ref id="presonus.pkg.Universal.Control.fw_midi_driver"/>
     </choice>
-    <choice id="app" title="FireStudio Mixer __VERSION__"
-            description="Console de mixage, routage, vu-mètres et presets pour la FireStudio 26x26 (remplace FireControl / Universal Control).">
+    <choice id="app" title="APP_TITLE" description="APP_DESC">
         <pkg-ref id="io.github.opencontrol-firestudio.mixer"/>
     </choice>
 
-    <pkg-ref id="presonus.pkg.Universal.Control.fw_audio_driver" onConclusion="RequireRestart">presonus-fw-audio.pkg</pkg-ref>
-    <pkg-ref id="presonus.pkg.Universal.Control.fw_midi_driver">presonus-fw-midi.pkg</pkg-ref>
-    <pkg-ref id="io.github.opencontrol-firestudio.mixer">opencontrol-app.pkg</pkg-ref>
+    <pkg-ref id="presonus.pkg.Universal.Control.fw_audio_driver" version="__DRIVER__" onConclusion="RequireRestart">presonus-fw-audio.pkg</pkg-ref>
+    <pkg-ref id="presonus.pkg.Universal.Control.fw_midi_driver" version="__DRIVER__">presonus-fw-midi.pkg</pkg-ref>
+    <pkg-ref id="io.github.opencontrol-firestudio.mixer" version="__VERSION__">opencontrol-app.pkg</pkg-ref>
 </installer-gui-script>

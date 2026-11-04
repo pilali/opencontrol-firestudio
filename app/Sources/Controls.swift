@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-// MARK: - Thème « console » sobre
+// MARK: - Sober "console" theme
 
 enum Theme {
     static let window = Color(red: 0.105, green: 0.11, blue: 0.12)
@@ -23,7 +23,7 @@ enum Theme {
     }
 }
 
-// MARK: - Molette : envoie les événements au contrôle survolé
+// MARK: - Scroll wheel: routes events to the hovered control
 
 final class ScrollRouter {
     static let shared = ScrollRouter()
@@ -36,8 +36,8 @@ final class ScrollRouter {
         guard monitor == nil else { return }
         monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] e in
             guard let self = self, let h = self.handler else { return e }
-            // Direction physique : haut = monter le fader, quel que soit le « défilement naturel ».
-            var d = e.scrollingDeltaY != 0 ? e.scrollingDeltaY : e.scrollingDeltaX   // ⇧ transforme Y en X
+            // Physical direction: up = fader up, whatever the "natural scrolling" setting.
+            var d = e.scrollingDeltaY != 0 ? e.scrollingDeltaY : e.scrollingDeltaX   // ⇧ turns Y into X
             if e.isDirectionInvertedFromDevice { d = -d }
             let coarse = e.modifierFlags.contains(.shift)
             var steps = 0
@@ -46,11 +46,11 @@ final class ScrollRouter {
                 let unit: CGFloat = 6
                 steps = Int(self.accumulated / unit)
                 self.accumulated -= CGFloat(steps) * unit
-            } else if d != 0 {                        // molette crantée
+            } else if d != 0 {                        // notched wheel
                 steps = d > 0 ? max(1, Int(d.rounded())) : min(-1, Int(d.rounded()))
             }
             if steps != 0 { h(steps * (coarse ? 8 : 1)) }
-            return nil                                // consommé : la vue ne défile pas
+            return nil                                // consumed: the view does not scroll
         }
     }
 
@@ -58,7 +58,7 @@ final class ScrollRouter {
     func leave(_ id: UUID) { if owner == id { owner = nil; handler = nil } }
 }
 
-// MARK: - Vu-mètre à LED avec maintien de crête (vue AppKit, hors du graphe SwiftUI)
+// MARK: - LED meter with peak hold (AppKit view, outside the SwiftUI graph)
 
 final class MeterNSView: NSView {
     var index: Int? { didSet { shown = (-1, -1); refresh() } }
@@ -107,14 +107,14 @@ struct MeterBar: NSViewRepresentable {
 
 // MARK: - Fader
 
-/// Fader vertical 0…255 (255 = 0 dB, 0,375 dB par cran).
-/// Glisser relatif (aucun saut), ⌥ = précision ×4, molette = ±1 cran (⇧ : ×8), double-clic = 0 dB.
-/// Pendant le geste, l'affichage est local ; la carte reçoit les valeurs en arrière-plan.
+/// Vertical fader 0…255 (255 = 0 dB, 0.375 dB per step).
+/// Relative drag (no jump), ⌥ = 4× finer, scroll wheel = ±1 step (⇧: ×8), double-click = 0 dB.
+/// During a gesture the display is local; the device receives the values in the background.
 struct Fader: View {
     static func dB(_ v: Double) -> String {
-        v < 1 ? "−∞" : String(format: "%.1f", (v - 255) * 0.375)
+        v < 1 ? "−∞" : String(format: "%.1f", locale: Locale.current, (v - 255) * 0.375)
     }
-    /// Graduations : (valeur interne, libellé)
+    /// Scale marks: (internal value, label)
     static let marks: [(Double, String)] = [(255, "0"), (239, "6"), (223, "12"), (191, "24"), (127, "48"), (63, "72"), (0, "∞")]
 
     var value: Double
@@ -137,14 +137,14 @@ struct Fader: View {
                 let travel = g.size.height - cap
                 let y = travel * CGFloat(1 - shown / 255)
                 ZStack(alignment: .top) {
-                    // rainure
+                    // slot
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Color.black.opacity(0.7))
                         .overlay(RoundedRectangle(cornerRadius: 2).stroke(Color.white.opacity(0.06)))
                         .frame(width: 5)
                         .padding(.vertical, cap / 2 - 2)
                         .frame(maxWidth: .infinity)
-                    // remplissage discret sous la poignée
+                    // subtle fill below the cap
                     RoundedRectangle(cornerRadius: 1.5)
                         .fill(accent.opacity(0.55))
                         .frame(width: 3, height: max(0, travel - y))
@@ -174,7 +174,7 @@ struct Fader: View {
             hover = inside
             if inside { ScrollRouter.shared.enter(id) { wheel($0) } } else { ScrollRouter.shared.leave(id) }
         }
-        .onChange(of: value) { _ in   // la valeur a changé ailleurs : le gestionnaire doit voir la nouvelle
+        .onChange(of: value) { _ in   // the value changed elsewhere: the handler must see the new one
             if hover { ScrollRouter.shared.enter(id) { wheel($0) } }
         }
         .onDisappear { ScrollRouter.shared.leave(id) }
@@ -222,14 +222,20 @@ struct Fader: View {
     }
 }
 
-// MARK: - Panoramique
+// MARK: - Pan
 
 struct PanControl: View {
-    var value: Double                 // 0…255, 0x7F = centre
+    var value: Double                 // 0…255, 0x7F = center
     var accent: Color
     var onChange: (Double, _ live: Bool) -> Void
     @State private var drag: Double?
     @State private var start: Double = 0
+
+    private func panHelp(_ v: Double) -> String {
+        let amount = Int(abs(v - 0x7F))
+        if amount == 0 { return L("Center") }
+        return v < 0x7F ? L("L %d", amount) : L("R %d", amount)
+    }
 
     var body: some View {
         let shown = drag ?? value
@@ -264,11 +270,11 @@ struct PanControl: View {
             .onTapGesture(count: 2) { onChange(0x7F, false) }
         }
         .frame(width: 50, height: 14)
-        .help(abs(shown - 0x7F) < 1 ? "Centre" : String(format: "%@ %d", shown < 0x7F ? "G" : "D", Int(abs(shown - 0x7F))))
+        .help(panHelp(shown))
     }
 }
 
-// MARK: - Boutons
+// MARK: - Buttons
 
 struct GlowButton: View {
     var label: String
@@ -291,14 +297,14 @@ struct GlowButton: View {
     }
 }
 
-/// En-tête de section avec filet coloré.
+/// Section header with a colored rule.
 struct SectionHeader: View {
     var title: String
     var color: Color
     var body: some View {
         HStack(spacing: 6) {
             RoundedRectangle(cornerRadius: 1).fill(color).frame(width: 3, height: 11)
-            Text(title.uppercased()).font(.system(size: 10, weight: .semibold)).kerning(1.2).foregroundColor(Theme.dim)
+            Text(title.uppercased(with: Locale.current)).font(.system(size: 10, weight: .semibold)).kerning(1.2).foregroundColor(Theme.dim)
         }
     }
 }

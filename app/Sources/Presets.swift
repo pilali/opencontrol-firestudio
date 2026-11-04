@@ -1,9 +1,9 @@
 import SwiftUI
 
-// MARK: - Plage rappelée par un preset
+// MARK: - Range recalled by a preset
 
 extension Reg {
-    /// Mixage + routage. Les réglages matériels (BNC, Expanded Mix Mode, talkback, surround, MSR) sont exclus.
+    /// Mixing + routing. Hardware settings (BNC, Expanded Mix Mode, talkback, surround, MSR) are excluded.
     static func isRecallable(_ off: UInt32) -> Bool {
         guard writableRange.contains(off), off % 4 == 0 else { return false }
         if (0x1114...0x1128).contains(off) || off == dmmm { return false }
@@ -12,7 +12,7 @@ extension Reg {
 }
 
 extension MixerModel {
-    /// Réécrit sur la carte les paramètres rappelables qui diffèrent. Renvoie le nombre de mots modifiés.
+    /// Writes to the device the recallable parameters that differ. Returns the number of changed words.
     func recall(_ saved: [UInt32]) -> Int {
         guard saved.count == Reg.quadlets else { return 0 }
         var n = 0
@@ -35,15 +35,7 @@ extension MixerModel {
     }
 }
 
-extension Backup {
-    @discardableResult
-    static func write(_ regs: [UInt32], to url: URL) -> Bool {
-        let text = regs.enumerated().map { String(format: "%04x %08x", $0.offset * 4, $0.element) }.joined(separator: "\n")
-        return (try? text.write(to: url, atomically: true, encoding: .utf8)) != nil
-    }
-}
-
-// MARK: - Stockage des 6 presets
+// MARK: - Storage of the 6 presets
 
 final class PresetStore: ObservableObject {
     static let count = 6
@@ -53,16 +45,17 @@ final class PresetStore: ObservableObject {
     @Published var message = ""
 
     private var folder: URL {
-        let url = Backup.folder.deletingLastPathComponent().appendingPathComponent("Presets", isDirectory: true)
+        let url = Backup.appSupport.appendingPathComponent("Presets", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
     private func file(_ i: Int) -> URL { folder.appendingPathComponent("preset-\(i + 1).fsmix") }
-    private var namesFile: URL { folder.appendingPathComponent("noms.json") }
+    private var namesFile: URL { folder.appendingPathComponent("names.json") }
 
     init() {
         names = Array(repeating: "", count: PresetStore.count)
         data = Array(repeating: nil, count: PresetStore.count)
+        Backup.migrate(from: folder.appendingPathComponent("noms.json"), to: namesFile)
         if let d = try? Data(contentsOf: namesFile), let n = try? JSONDecoder().decode([String].self, from: d), n.count == PresetStore.count {
             names = n
         }
@@ -70,23 +63,23 @@ final class PresetStore: ObservableObject {
     }
 
     func isEmpty(_ i: Int) -> Bool { data[i] == nil }
-    func title(_ i: Int) -> String { names[i].isEmpty ? "Preset \(i + 1)" : names[i] }
+    func title(_ i: Int) -> String { names[i].isEmpty ? L("Preset %d", i + 1) : names[i] }
 
     func store(_ i: Int, _ m: MixerModel) {
         guard m.connected else { return }
         if Backup.write(m.regs, to: file(i)) {
             data[i] = m.regs
-            flash("« \(title(i)) » mémorisé")
+            flash(L("“%@” stored", title(i)))
         } else {
-            flash("Échec de l'enregistrement")
+            flash(L("Save failed"))
         }
         storeMode = false
     }
 
     func recall(_ i: Int, _ m: MixerModel) {
-        guard let saved = data[i] else { flash("Emplacement vide — « Mémoriser » puis clic pour l'enregistrer"); return }
+        guard let saved = data[i] else { flash(L("Empty slot — click STORE, then this slot")); return }
         let n = m.recall(saved)
-        flash(n == 0 ? "« \(title(i)) » est déjà actif" : "« \(title(i)) » rappelé (\(n) paramètres)")
+        flash(n == 0 ? L("“%@” is already active", title(i)) : L("“%@” recalled (%d parameters)", title(i), n))
     }
 
     func rename(_ i: Int, _ name: String) {
@@ -98,7 +91,7 @@ final class PresetStore: ObservableObject {
         try? FileManager.default.removeItem(at: file(i))
         data[i] = nil
         rename(i, "")
-        flash("Emplacement \(i + 1) effacé")
+        flash(L("Slot %d cleared", i + 1))
     }
 
     private var flashWork: DispatchWorkItem?
@@ -111,7 +104,7 @@ final class PresetStore: ObservableObject {
     }
 }
 
-// MARK: - Barre de presets
+// MARK: - Preset bar
 
 struct PresetBar: View {
     @EnvironmentObject var m: MixerModel
@@ -122,13 +115,13 @@ struct PresetBar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            SectionHeader(title: "Presets", color: Theme.input)
+            SectionHeader(title: L("Presets"), color: Theme.input)
                 .padding(.trailing, 4)
             ForEach(0..<PresetStore.count, id: \.self) { i in slot(i) }
             Button { p.storeMode.toggle() } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "square.and.arrow.down").font(.system(size: 10, weight: .bold))
-                    Text(p.storeMode ? "CHOISIR UN EMPLACEMENT…" : "MÉMORISER").font(.system(size: 9.5, weight: .bold)).kerning(0.6)
+                    Text(p.storeMode ? L("PICK A SLOT…") : L("STORE")).font(.system(size: 9.5, weight: .bold)).kerning(0.6)
                 }
                 .foregroundColor(p.storeMode ? .black.opacity(0.85) : Theme.mute)
                 .padding(.horizontal, 10).padding(.vertical, 5)
@@ -136,7 +129,7 @@ struct PresetBar: View {
                 .overlay(Capsule().stroke(Theme.mute.opacity(0.6)))
             }
             .buttonStyle(.plain)
-            .help(p.storeMode ? "Annuler" : "Puis clique sur un emplacement pour y enregistrer l'état actuel")
+            .help(p.storeMode ? L("Cancel") : L("Then click a slot to store the current state"))
             Text(p.message).font(.system(size: 10.5)).foregroundColor(Theme.dim).lineLimit(1)
             Spacer()
         }
@@ -150,9 +143,9 @@ struct PresetBar: View {
             if p.storeMode { p.store(i, m) } else { p.recall(i, m) }
         } label: {
             HStack(spacing: 5) {
-                Text("\(i + 1)").font(.system(size: 9, weight: .heavy).monospacedDigit())
+                Text(verbatim: "\(i + 1)").font(.system(size: 9, weight: .heavy).monospacedDigit())
                     .foregroundColor(active ? .black.opacity(0.6) : Theme.dim)
-                Text(empty ? "vide" : p.title(i))
+                Text(empty ? L("empty") : p.title(i))
                     .font(.system(size: 11, weight: active ? .bold : .medium))
                     .lineLimit(1)
             }
@@ -167,25 +160,25 @@ struct PresetBar: View {
                                       style: StrokeStyle(lineWidth: 1, dash: empty && !p.storeMode ? [3, 2] : [])))
         }
         .buttonStyle(.plain)
-        .help(empty ? "Emplacement vide" : (p.storeMode ? "Remplacer par l'état actuel" : "Rappeler « \(p.title(i)) »"))
+        .help(empty ? L("Empty slot") : (p.storeMode ? L("Replace with the current state") : L("Recall “%@”", p.title(i))))
         .contextMenu {
-            Button("Mémoriser l'état actuel ici") { p.store(i, m) }
-            Button("Renommer…") { renameIndex = i; renameText = p.names[i]; renaming = true }.disabled(empty)
+            Button(L("Store current state here")) { p.store(i, m) }
+            Button(L("Rename…")) { renameIndex = i; renameText = p.names[i]; renaming = true }.disabled(empty)
             Divider()
-            Button("Effacer") { p.clear(i) }.disabled(empty)
+            Button(L("Clear")) { p.clear(i) }.disabled(empty)
         }
     }
 
     private var renameSheet: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Nom du preset \(renameIndex + 1)").font(.headline)
-            TextField("Preset \(renameIndex + 1)", text: $renameText)
+            Text(L("Name of preset %d", renameIndex + 1)).font(.headline)
+            TextField(L("Preset %d", renameIndex + 1), text: $renameText)
                 .textFieldStyle(.roundedBorder).frame(width: 260)
                 .onSubmit { p.rename(renameIndex, renameText); renaming = false }
             HStack {
                 Spacer()
-                Button("Annuler") { renaming = false }.keyboardShortcut(.cancelAction)
-                Button("OK") { p.rename(renameIndex, renameText); renaming = false }.keyboardShortcut(.defaultAction)
+                Button(L("Cancel")) { renaming = false }.keyboardShortcut(.cancelAction)
+                Button(L("OK")) { p.rename(renameIndex, renameText); renaming = false }.keyboardShortcut(.defaultAction)
             }
         }
         .padding(18)

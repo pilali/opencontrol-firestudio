@@ -4,7 +4,7 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/firewire/IOFireWireLib.h>
 #include <libkern/OSByteOrder.h>
-// usage: dumpr <addrLo hex> <nquadlets> [stride]  (lecture seule, addrHi=0xffff)
+// usage: dumpr <addrLo hex> <nquadlets> [stride]  (read only, addrHi=0xffff)
 int main(int c,char**v){
   CFMutableDictionaryRef m=IOServiceMatching("IOFireWireDevice"); int vd=0xa92;
   CFDictionarySetValue(m,CFSTR("Vendor_ID"),CFNumberCreate(NULL,kCFNumberIntType,&vd));

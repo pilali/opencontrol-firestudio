@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
-// MARK: - Tranche
+// MARK: - Channel strip
 
 struct StripView: View {
     @EnvironmentObject var m: MixerModel
@@ -36,12 +36,12 @@ struct StripView: View {
                 Fader(value: m.level(kind, ch, mix: mix), accent: accent) { m.setLevel(kind, ch, mix: mix, $0, live: $1) }
                 MeterBar(index: meterIndex).frame(width: 9, height: 187)
             }
-            Text(Fader.dB(m.level(kind, ch, mix: mix)) + (m.level(kind, ch, mix: mix) < 1 ? "" : " dB"))
+            Text(verbatim: Fader.dB(m.level(kind, ch, mix: mix)) + (m.level(kind, ch, mix: mix) < 1 ? "" : " dB"))
                 .font(.system(size: 9, weight: .medium).monospacedDigit())
                 .foregroundColor(Theme.text.opacity(0.7))
                 .frame(height: 12)
-            // bandeau de nom
-            Text(title)
+            // scribble strip
+            Text(verbatim: title)
                 .font(.system(size: 9.5, weight: .semibold))
                 .foregroundColor(Theme.text)
                 .lineLimit(2).multilineTextAlignment(.center)
@@ -68,18 +68,18 @@ struct LinkButton: View {
         Button { m.setLinked(kind, pair: pair, mix: mix, !on) } label: {
             HStack(spacing: 3) {
                 Image(systemName: "link").font(.system(size: 9, weight: .bold))
-                Text("LINK").font(.system(size: 8.5, weight: .bold)).kerning(0.8)
+                Text(verbatim: "LINK").font(.system(size: 8.5, weight: .bold)).kerning(0.8)
             }
             .foregroundColor(on ? .black.opacity(0.8) : Theme.dim)
             .frame(maxWidth: .infinity, minHeight: 16)
             .background(RoundedRectangle(cornerRadius: 3).fill(on ? Theme.accent(kind) : Color.white.opacity(0.05)))
         }
         .buttonStyle(.plain)
-        .help("Liaison stéréo des canaux \(pair * 2 + 1)/\(pair * 2 + 2)")
+        .help(L("Stereo link for channels %d/%d", pair * 2 + 1, pair * 2 + 2))
     }
 }
 
-/// Groupe de 2 tranches liables.
+/// Group of 2 linkable strips.
 struct PairView: View {
     @EnvironmentObject var m: MixerModel
     var kind: MixerModel.Kind
@@ -110,7 +110,7 @@ struct MixTabs: View {
             ForEach(0..<Reg.mixCount, id: \.self) { i in
                 let sel = m.selectedMix == i
                 Button { m.selectedMix = i } label: {
-                    Text(m.mixName(i))
+                    Text(verbatim: m.mixName(i))
                         .font(.system(size: 11, weight: sel ? .bold : .medium))
                         .foregroundColor(sel ? .black.opacity(0.85) : Theme.text.opacity(0.8))
                         .padding(.horizontal, 11).padding(.vertical, 5)
@@ -130,7 +130,7 @@ struct MixerPage: View {
                 MixTabs()
                 Spacer()
                 Button { m.clearSolos(mix: m.selectedMix) } label: {
-                    Text("SOLO OFF").font(.system(size: 10, weight: .bold)).kerning(0.8)
+                    Text(verbatim: "SOLO OFF").font(.system(size: 10, weight: .bold)).kerning(0.8)
                         .foregroundColor(Theme.solo)
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .overlay(Capsule().stroke(Theme.solo.opacity(0.6)))
@@ -138,12 +138,12 @@ struct MixerPage: View {
             }
             ScrollView(.horizontal) {
                 HStack(alignment: .top, spacing: 14) {
-                    section("Entrées", Theme.input) {
+                    section(L("Inputs"), Theme.input) {
                         ForEach(0..<9) { p in
                             PairView(kind: .input, pair: p, mix: m.selectedMix, name: m.inputName, meter: Reg.inputMeter)
                         }
                     }
-                    section(m.bool(Reg.a2md) ? "Retours DAW / ADAT 9-16" : "Retours DAW", Theme.playback) {
+                    section(m.bool(Reg.a2md) ? L("DAW returns / ADAT 9-16") : L("DAW returns"), Theme.playback) {
                         ForEach(0..<9) { p in
                             PairView(kind: .playback, pair: p, mix: m.selectedMix, name: m.playbackName, meter: Reg.playbackMeter)
                         }
@@ -154,7 +154,7 @@ struct MixerPage: View {
                     }
                 }.padding(.bottom, 10)
             }
-            Text("Glisser : fader · ⌥ glisser : réglage fin · molette : ±0,375 dB (⇧ ×8) · double-clic : 0 dB / centre")
+            Text(L("Drag: fader · ⌥ drag: fine · scroll wheel: ±0.375 dB (⇧ ×8) · double-click: 0 dB / center"))
                 .font(.system(size: 10)).foregroundColor(Theme.dim)
         }
     }
@@ -175,15 +175,15 @@ struct RoutingPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                GroupBox("Sorties physiques") {
+                GroupBox(L("Physical outputs")) {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(0..<9) { OutputRow(pair: $0) }
                     }.padding(6)
                 }
-                GroupBox("Main et casques") {
+                GroupBox(L("Main and headphones")) {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(0..<4) { MonitorRow(idx: $0) }
-                        Text("Main et les casques recopient une paire de sorties. Pour écouter un mix au casque, envoie-le sur cette paire ci-dessus.")
+                        Text(L("Main and the headphones copy an output pair. To hear a mix in the headphones, send it to that pair above."))
                             .font(.caption).foregroundColor(.secondary)
                     }.padding(6)
                 }
@@ -198,14 +198,14 @@ struct OutputRow: View {
     @EnvironmentObject var m: MixerModel
     var pair: Int
 
-    /// Sources stéréo proposées (valeur = canal gauche).
+    /// Offered stereo sources (value = left channel).
     private var sources: [SourceOption] {
         var s: [SourceOption] = []
         for mix in 0..<Reg.mixCount { s.append(SourceOption(value: 36 + mix * 2, label: m.mixName(mix))) }
-        for p in 0..<9 { s.append(SourceOption(value: p * 2, label: "Entrée " + m.inputName(p * 2) + " / " + m.inputName(p * 2 + 1))) }
+        for p in 0..<9 { s.append(SourceOption(value: p * 2, label: L("Input %@ / %@", m.inputName(p * 2), m.inputName(p * 2 + 1)))) }
         for p in 0..<9 { s.append(SourceOption(value: 18 + p * 2, label: m.playbackName(p * 2) + " / " + m.playbackName(p * 2 + 1))) }
         let cur = m.outputSource(pair * 2)
-        if !s.contains(where: { $0.value == cur }) { s.append(SourceOption(value: cur, label: "Autre : " + m.sourceName(cur))) }
+        if !s.contains(where: { $0.value == cur }) { s.append(SourceOption(value: cur, label: L("Other: %@", m.sourceName(cur)))) }
         return s
     }
 
@@ -213,7 +213,7 @@ struct OutputRow: View {
         let left = m.outputSource(pair * 2), right = m.outputSource(pair * 2 + 1)
         let binding = Binding<Int>(get: { left }, set: { m.setPairSource(pair: pair, left: $0) })
         return HStack(spacing: 10) {
-            Text(RoutingPage.pairNames[pair]).frame(width: 110, alignment: .leading)
+            Text(verbatim: RoutingPage.pairNames[pair]).frame(width: 110, alignment: .leading)
             Picker("", selection: binding) {
                 ForEach(sources, id: \.self) { o in Text(o.label).tag(o.value) }
             }.frame(width: 320)
@@ -221,7 +221,7 @@ struct OutputRow: View {
                 MeterBar(index: Reg.sourceMeter(left)).frame(width: 9)
                 MeterBar(index: Reg.sourceMeter(right)).frame(width: 9)
             }.frame(height: 18)
-            Text(m.sourceName(left) + " · " + m.sourceName(right)).font(.caption).foregroundColor(.secondary)
+            Text(verbatim: m.sourceName(left) + " · " + m.sourceName(right)).font(.caption).foregroundColor(.secondary)
         }
     }
 }
@@ -233,9 +233,9 @@ struct MonitorRow: View {
     var body: some View {
         let pairB = Binding<Int>(get: { m.monitorPair(idx) }, set: { m.setMonitorPair(idx, $0) })
         return HStack(spacing: 10) {
-            Text(idx == 0 ? "Main" : "Phones \(idx)").frame(width: 110, alignment: .leading)
-            Picker("Copie de", selection: pairB) {
-                ForEach(0..<9) { Text(RoutingPage.pairNames[$0]).tag($0) }
+            Text(verbatim: idx == 0 ? "Main" : "Phones \(idx)").frame(width: 110, alignment: .leading)
+            Picker(L("Copy of"), selection: pairB) {
+                ForEach(0..<9) { Text(verbatim: RoutingPage.pairNames[$0]).tag($0) }
             }.frame(width: 230)
         }
     }
@@ -248,27 +248,27 @@ struct SettingsPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                GroupBox("Réglages FireStudio") {
+                GroupBox(L("FireStudio settings")) {
                     VStack(alignment: .leading, spacing: 8) {
-                        toggle("Terminate BNC (terminaison word clock 75 Ω)", Reg.bnct)
-                        toggle("Expanded Mix Mode (ADAT 2) — les retours DAW 11-18 deviennent ADAT 9-16", Reg.a2md)
-                        toggle("Talkback to Digital Outs", Reg.tbdo)
-                        toggle("Copy 1/2 to main L/R in surround mode", Reg.dcmt)
-                        toggle("Mains actifs en mode surround (décoché = mains coupés)", Reg.mtss)
-                        Text("Fréquence d'échantillonnage : \(m.sampleRate) Hz (à régler dans Configuration audio et MIDI)")
+                        toggle(L("Terminate BNC (75 Ω word clock termination)"), Reg.bnct)
+                        toggle(L("Expanded Mix Mode (ADAT 2) — DAW returns 11-18 become ADAT 9-16"), Reg.a2md)
+                        toggle(L("Talkback to digital outputs"), Reg.tbdo)
+                        toggle(L("Copy 1/2 to main L/R in surround mode"), Reg.dcmt)
+                        toggle(L("Mains active in surround mode (unchecked = mains muted)"), Reg.mtss)
+                        Text(L("Sample rate: %d Hz (change it in Audio MIDI Setup)", m.sampleRate))
                             .font(.caption).foregroundColor(.secondary)
                     }.padding(6)
                 }
-                GroupBox("Sauvegardes") {
+                GroupBox(L("Backups")) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Une copie complète de l'état de la carte est enregistrée à chaque connexion.")
+                        Text(L("A full copy of the device state is saved on every connection."))
                             .font(.caption).foregroundColor(.secondary)
-                        if let b = m.lastBackup { Text("Dernière : " + b.lastPathComponent).font(.caption.monospaced()) }
+                        if let b = m.lastBackup { Text(L("Latest: %@", b.lastPathComponent)).font(.caption.monospaced()) }
                         HStack {
-                            Button("Enregistrer l'état actuel…") { saveAs() }
-                            Button("Restaurer une sauvegarde…") { restore() }
-                            Button("Ouvrir le dossier") { NSWorkspace.shared.open(Backup.folder) }
-                            Button("Relire la carte") { m.reloadFromDevice() }
+                            Button(L("Save current state…")) { saveAs() }
+                            Button(L("Restore a backup…")) { restore() }
+                            Button(L("Open folder")) { NSWorkspace.shared.open(Backup.folder) }
+                            Button(L("Reload from device")) { m.reloadFromDevice() }
                         }
                         if !message.isEmpty { Text(message).font(.caption) }
                     }.padding(6)
@@ -289,7 +289,7 @@ struct SettingsPage: View {
         if let tmp = Backup.save(m.regs, name: "tmp_export") {
             try? FileManager.default.removeItem(at: url)
             try? FileManager.default.moveItem(at: tmp, to: url)
-            message = "Enregistré : " + url.lastPathComponent
+            message = L("Saved: %@", url.lastPathComponent)
         }
     }
 
@@ -311,12 +311,12 @@ struct ContentView: View {
             HStack {
                 Circle().fill(m.connected ? Theme.playback : Theme.master).frame(width: 8, height: 8)
                     .shadow(color: (m.connected ? Theme.playback : Theme.master).opacity(0.8), radius: 3)
-                Text("FIRESTUDIO").font(.system(size: 12, weight: .heavy)).kerning(2).foregroundColor(Theme.text)
-                Text(m.connected ? "26x26 · \(m.sampleRate / 1000) kHz" : m.status)
+                Text(verbatim: "FIRESTUDIO").font(.system(size: 12, weight: .heavy)).kerning(2).foregroundColor(Theme.text)
+                Text(verbatim: m.connected ? "26x26 · \(m.sampleRate / 1000) kHz" : m.status)
                     .font(.system(size: 11)).foregroundColor(Theme.dim)
                 Spacer()
                 Picker("", selection: $tab) {
-                    Text("Mixer").tag(0); Text("Sorties / routage").tag(1); Text("Réglages").tag(2)
+                    Text(L("Mixer")).tag(0); Text(L("Outputs / routing")).tag(1); Text(L("Settings")).tag(2)
                 }.pickerStyle(.segmented).frame(width: 380)
             }
             .padding(10)
@@ -328,7 +328,7 @@ struct ContentView: View {
                 if !m.connected {
                     VStack(spacing: 10) {
                         ProgressView()
-                        Text(m.status).foregroundColor(.secondary)
+                        Text(verbatim: m.status).foregroundColor(.secondary)
                     }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if tab == 0 { MixerPage() } else if tab == 1 { RoutingPage() } else { SettingsPage() }
             }

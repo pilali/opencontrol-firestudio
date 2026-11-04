@@ -1,9 +1,9 @@
-# OpenControl for PreSonus FireStudio — application « FireStudio Mixer »
-#   make                       → build natif
+# OpenControl for PreSonus FireStudio — "FireStudio Mixer" app
+#   make                       → native build
 #   make ARCHS="x86_64 arm64"  → Universal Binary
-#   make install               → copie dans /Applications
-#   make pkg                   → installeur de l'application seule
-#   make zip                   → archive .zip de l'application
+#   make install               → copy to /Applications
+#   make pkg                   → app-only installer package
+#   make zip                   → .zip archive of the app
 
 VERSION ?= $(shell cat ../VERSION)
 BUILD   ?= 1
@@ -13,7 +13,7 @@ MINOS   = 12.0
 APP  = build/FireStudio Mixer.app
 BIN  = $(APP)/Contents/MacOS/FireStudioMixer
 ICNS = build/AppIcon.icns
-SWIFT = Sources/RegisterMap.swift Sources/MixerModel.swift Sources/Controls.swift Sources/Presets.swift Sources/Views.swift
+SWIFT = Sources/L10n.swift Sources/RegisterMap.swift Sources/MixerModel.swift Sources/Controls.swift Sources/Presets.swift Sources/Views.swift
 
 all: $(BIN)
 
@@ -34,10 +34,11 @@ $(ICNS): tools/make_icon.swift
 	done
 	iconutil -c icns build/AppIcon.iconset -o $@
 
-$(BIN): $(foreach a,$(ARCHS),build/FireStudioMixer-$(a)) Info.plist $(ICNS)
+$(BIN): $(foreach a,$(ARCHS),build/FireStudioMixer-$(a)) Info.plist $(ICNS) $(wildcard Resources/*.lproj/*.strings)
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
 	sed -e 's/__VERSION__/$(VERSION)/' -e 's/__BUILD__/$(BUILD)/' Info.plist > "$(APP)/Contents/Info.plist"
 	cp $(ICNS) "$(APP)/Contents/Resources/AppIcon.icns"
+	cp -R Resources/*.lproj "$(APP)/Contents/Resources/"
 	lipo -create $(foreach a,$(ARCHS),build/FireStudioMixer-$(a)) -output "$(BIN)"
 	codesign --force -s - "$(APP)"
 	@echo "Architectures : $$(lipo -archs "$(BIN)")"
@@ -53,7 +54,7 @@ zip: all
 install: all
 	-pkill -TERM -f "FireStudio Mixer.app/Contents/MacOS/FireStudioMixer"; sleep 1
 	ditto "$(APP)" "/Applications/FireStudio Mixer.app"
-	@echo "Installée : /Applications/FireStudio Mixer.app"
+	@echo "Installed: /Applications/FireStudio Mixer.app"
 
 clean:
 	rm -rf build

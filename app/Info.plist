@@ -13,7 +13,7 @@
 	<key>NSHighResolutionCapable</key><true/>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>LSApplicationCategoryType</key><string>public.app-category.music</string>
-	<key>NSHumanReadableCopyright</key><string>OpenControl for PreSonus FireStudio — logiciel libre, non affilié à PreSonus</string>
-	<key>CFBundleDevelopmentRegion</key><string>fr</string>
+	<key>NSHumanReadableCopyright</key><string>OpenControl for PreSonus FireStudio — free software, not affiliated with PreSonus</string>
+	<key>CFBundleDevelopmentRegion</key><string>en</string>
 </dict>
 </plist>
