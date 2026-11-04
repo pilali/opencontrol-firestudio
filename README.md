@@ -1,88 +1,85 @@
 # OpenControl for PreSonus FireStudio
 
-**Logiciel libre de contrôle du mixeur DSP de la PreSonus FireStudio 26x26 (2008) sur macOS moderne.**
-*Free replacement for FireControl / Universal Control for the original PreSonus FireStudio 26x26.*
+**Free software to control the DSP mixer of the original PreSonus FireStudio 26x26 (2008) on modern macOS.**
+A replacement for FireControl / Universal Control, which no longer support this interface.
 
-PreSonus a arrêté le support de la FireStudio 26x26 en 2015. Avec les drivers FireWire d'un produit
-plus récent, l'interface fonctionne encore en audio, mais plus aucun logiciel ne donne accès à son mixeur
-interne : monitoring sans latence, routage des sorties, casques. OpenControl comble ce manque.
+PreSonus ended support for the FireStudio 26x26 in 2015. With the FireWire drivers of a newer PreSonus
+product the interface still works for audio, but no software can reach its internal mixer any more:
+zero-latency monitoring, output routing and headphone feeds. OpenControl fills that gap.
 
 ![FireStudio Mixer](docs/screenshot.png)
 
-## Fonctions
+## Features
 
-- **9 mix stéréo** : 18 entrées et 18 retours DAW par mix, avec fader en dB, panoramique, mute, solo, liaison stéréo et master
-- **Routage** de chaque paire de sorties (Out 1/2 … S/PDIF) vers une entrée, un retour DAW ou un mix ; source de Main et des 3 casques
-- **Vu-mètres** à LED avec maintien de crête
-- **6 presets** rappelables en un clic
-- **Sauvegarde automatique** de l'état complet de la carte à chaque connexion, avec restauration
-- Molette (±0,375 dB, ⇧ ×8), ⌥ pour le réglage fin, double-clic pour revenir à 0 dB / au centre
+- **9 stereo mixes**: 18 inputs and 18 DAW returns per mix, each with a fader in dB, pan, mute, solo, stereo link, plus a master fader
+- **Routing**: send any input, DAW return or mix to each output pair (Out 1/2 … S/PDIF); choose the source of Main and the 3 headphone outputs
+- **LED meters** with peak hold
+- **6 presets** recalled with one click
+- **Automatic backup** of the full device state on every connection, with restore
+- Scroll wheel for fine steps (±0.375 dB, ⇧ ×8), ⌥-drag for fine adjustment, double-click to reset to 0 dB / center
 
-## Matériel et systèmes testés
+## Tested hardware and systems
 
 | | |
 |---|---|
-| Interface | FireStudio 26x26 (modèle `0x08`, firmware DICE 1.0.4.0) |
-| Mac | Intel, macOS 12.7.6, adaptateur Thunderbolt → FireWire |
-| Drivers | PreSonus FireWire 4.2.1 (issus d'Universal Control 3.4.2) |
+| Interface | FireStudio 26x26 (model `0x08`, DICE firmware 1.0.4.0) |
+| Mac | Intel, macOS 12.7.6, Thunderbolt → FireWire adapter |
+| Drivers | PreSonus FireWire 4.2.1 (from Universal Control 3.4.2) |
 
-**Apple Silicon** : l'application est un Universal Binary, mais le kext PreSonus n'existe qu'en x86_64.
-La prise en charge du FireWire sur Apple Silicon n'a pas été vérifiée.
+**Apple Silicon**: the app is a Universal Binary, but the PreSonus kext is x86_64 only.
+FireWire support on Apple Silicon has not been verified.
 
 ## Installation
 
-### A. Installeur complet (drivers + application), assemblé sur votre Mac
+### A. Full installer (drivers + app), assembled on your Mac
 
-Ce dépôt **ne contient aucun binaire PreSonus**. Le script extrait les drivers de l'installeur officiel,
-vérifie leur signature PreSonus et leur version, et les assemble sans modification avec l'application.
+This repository **contains no PreSonus binaries**. The script extracts the drivers from the official
+installer, checks their PreSonus signature and version, and packages them unmodified together with the app.
 
-1. Téléchargez **Universal Control 3.4.2** pour macOS sur le site de PreSonus
+1. Download **Universal Control 3.4.2** for macOS from the PreSonus website
    (`PreSonus_UniversalControl_v3_4_2_63992.dmg`).
-2. Dans un clone du dépôt (outils en ligne de commande Xcode requis) :
+2. In a clone of this repository (Xcode command line tools required):
    ```sh
    installer/build-installer.sh ~/Downloads/PreSonus_UniversalControl_v3_4_2_63992.dmg
    ```
-3. Ouvrez `dist/OpenControl-FireStudio-<version>-complet.pkg`. Autorisez l'extension PreSonus dans
-   *Sécurité et confidentialité* si macOS le demande, puis redémarrez.
+3. Open `dist/OpenControl-FireStudio-<version>-complet.pkg`. If macOS asks, allow the PreSonus system
+   extension in *Security & Privacy*, then restart.
 
-L'installeur produit contient des drivers PreSonus : il est réservé à votre usage personnel et ne doit pas être redistribué.
+The resulting installer contains PreSonus drivers: keep it for your own use and do not redistribute it.
 
-### B. Application seule
+### B. App only
 
-Si les drivers sont déjà installés, téléchargez l'application depuis les
-[Releases](../../releases) (`.pkg` ou `.zip`, Universal Binary).
-Elle n'est pas notarisée : au premier lancement, faites un clic droit › *Ouvrir*.
+If the drivers are already installed, download the app from the [Releases](../../releases) page
+(`.pkg` or `.zip`, Universal Binary). The app is not notarized: on first launch, right-click it and choose *Open*.
 
-### C. Depuis les sources
+### C. From source
 
 ```sh
 cd app
 make ARCHS="x86_64 arm64"   # Universal Binary
-make install                # copie dans /Applications
+make install                # copies the app to /Applications
 ```
 
-## Fonctionnement
+## How it works
 
-L'application dialogue directement avec la puce DICE de la carte par des transactions FireWire
-asynchrones (`IOFireWireLib`), sans passer par le driver audio. Le protocole est documenté dans
-[docs/register-map.md](docs/register-map.md). Les outils de sonde en lecture/écriture se trouvent dans
-[tools/probe](tools/probe).
+The app talks directly to the DICE chip of the interface through asynchronous FireWire transactions
+(`IOFireWireLib`), independently of the audio driver. The protocol is documented in
+[docs/register-map.md](docs/register-map.md). Read/write probe tools are in [tools/probe](tools/probe).
 
-L'accès FireWire est exclusif : fermez l'application avant d'utiliser les outils de sonde.
+FireWire access is exclusive: quit the app before using the probe tools.
 
-## Avertissement
+## Disclaimer
 
-OpenControl est un projet indépendant, **ni affilié ni approuvé par PreSonus**. « PreSonus »,
-« FireStudio » et « Universal Control » sont des marques de leurs propriétaires respectifs. Le protocole
-a été documenté à des fins d'interopérabilité avec un matériel dont le support a cessé. Le logiciel est
-fourni sans garantie. Ses écritures sont limitées aux paramètres de mixage, et l'état de la carte est
-sauvegardé avant toute modification.
+OpenControl is an independent project, **not affiliated with or endorsed by PreSonus**. "PreSonus",
+"FireStudio" and "Universal Control" are trademarks of their respective owners. The protocol was documented
+for interoperability with hardware that is no longer supported. The software comes with no warranty. It only
+writes mixer parameters, and it backs up the device state before any change.
 
-## Remerciements
+## Acknowledgements
 
-- [FFADO](https://ffado.org) et le driver Linux `snd-dice` (Takashi Sakamoto), pour la documentation de la puce DICE
-- Le projet « Firestudio Catalina », pour l'idée de réutiliser les drivers d'un produit plus récent
+- [FFADO](https://ffado.org) and the Linux `snd-dice` driver (Takashi Sakamoto), for documenting the DICE chip
+- The "Firestudio Catalina" project, for the idea of reusing the drivers of a newer product
 
-## Licence
+## License
 
-[MIT](LICENSE). Ne couvre que le code d'OpenControl, pas les drivers PreSonus.
+[MIT](LICENSE). Covers the OpenControl code only, not the PreSonus drivers.
