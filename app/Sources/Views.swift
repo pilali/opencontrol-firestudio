@@ -121,6 +121,37 @@ struct MixTabs: View {
     }
 }
 
+/// Enlarges the window once so that the two-row mixer fits without scrolling (within the screen).
+/// Done once per layout version: afterwards the size the user chooses is kept.
+enum WindowFitter {
+    private static let key = "fittedLayout"
+    private static let layout = 2
+    private static var done = false
+
+    static func fit(content: CGSize, viewport: CGSize, attempt: Int = 0) {
+        guard !done, content.width > 0, viewport.width > 0,
+              UserDefaults.standard.integer(forKey: key) < layout else { return }
+        // At launch the window may not be on screen yet: retry a few times.
+        guard let win = NSApp.windows.first(where: { $0.isVisible && $0.contentView != nil }),
+              let screen = (win.screen ?? NSScreen.main)?.visibleFrame else {
+            if attempt < 20 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { fit(content: content, viewport: viewport, attempt: attempt + 1) }
+            }
+            return
+        }
+        done = true
+        UserDefaults.standard.set(layout, forKey: key)
+        let dw = max(0, ceil(content.width - viewport.width)), dh = max(0, ceil(content.height - viewport.height))
+        guard dw > 0 || dh > 0 else { return }
+        var f = win.frame
+        f.size.width = min(f.width + dw + 4, screen.width)
+        f.size.height = min(f.height + dh + 4, screen.height)
+        f.origin.y = max(screen.minY, win.frame.maxY - f.height)        // keep the title bar in place
+        f.origin.x = min(max(screen.minX, f.origin.x), screen.maxX - f.width)
+        win.setFrame(f, display: true, animate: true)
+    }
+}
+
 struct MixerPage: View {
     @EnvironmentObject var m: MixerModel
 
@@ -136,23 +167,33 @@ struct MixerPage: View {
                         .overlay(Capsule().stroke(Theme.solo.opacity(0.6)))
                 }.buttonStyle(.plain)
             }
-            ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 14) {
-                    section(L("Inputs"), Theme.input) {
-                        ForEach(0..<9) { p in
-                            PairView(kind: .input, pair: p, mix: m.selectedMix, name: m.inputName, meter: Reg.inputMeter)
+            GeometryReader { viewport in
+                ScrollView([.horizontal, .vertical]) {
+                    HStack(alignment: .center, spacing: 22) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            section(L("Inputs"), Theme.input) {
+                                ForEach(0..<9) { p in
+                                    PairView(kind: .input, pair: p, mix: m.selectedMix, name: m.inputName, meter: Reg.inputMeter)
+                                }
+                            }
+                            section(m.bool(Reg.a2md) ? L("DAW returns / ADAT 9-16") : L("DAW returns"), Theme.playback) {
+                                ForEach(0..<9) { p in
+                                    PairView(kind: .playback, pair: p, mix: m.selectedMix, name: m.playbackName, meter: Reg.playbackMeter)
+                                }
+                            }
+                        }
+                        section("Master", Theme.master) {
+                            StripView(kind: .output, ch: 18 + m.selectedMix, mix: 0, title: m.mixName(m.selectedMix),
+                                      meterIndex: Reg.mixMeter(m.selectedMix, right: false), showPan: false, showSolo: false)
                         }
                     }
-                    section(m.bool(Reg.a2md) ? L("DAW returns / ADAT 9-16") : L("DAW returns"), Theme.playback) {
-                        ForEach(0..<9) { p in
-                            PairView(kind: .playback, pair: p, mix: m.selectedMix, name: m.playbackName, meter: Reg.playbackMeter)
-                        }
-                    }
-                    section("Master", Theme.master) {
-                        StripView(kind: .output, ch: 18 + m.selectedMix, mix: 0, title: m.mixName(m.selectedMix),
-                                  meterIndex: Reg.mixMeter(m.selectedMix, right: false), showPan: false, showSolo: false)
-                    }
-                }.padding(.bottom, 10)
+                    .padding(.bottom, 10)
+                    .fixedSize()
+                    .background(GeometryReader { g in
+                        Color.clear.onAppear { WindowFitter.fit(content: g.size, viewport: viewport.size) }
+                    })
+                    .frame(minWidth: viewport.size.width, minHeight: viewport.size.height, alignment: .topLeading)
+                }
             }
             Text(L("Drag: fader · ⌥ drag: fine · scroll wheel: ±0.375 dB (⇧ ×8) · double-click: 0 dB / center"))
                 .font(.system(size: 10)).foregroundColor(Theme.dim)
