@@ -1,4 +1,4 @@
-TOOLS = raw dumpr scan wq
+TOOLS = raw dumpr scan wq opmode
 all: $(addprefix build/,$(TOOLS))
 build/%: %.c
 	mkdir -p build

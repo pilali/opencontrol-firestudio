@@ -244,6 +244,7 @@ struct MonitorRow: View {
 struct SettingsPage: View {
     @EnvironmentObject var m: MixerModel
     @State private var message = ""
+    @StateObject private var driver = DriverModel()
 
     var body: some View {
         ScrollView {
@@ -257,6 +258,33 @@ struct SettingsPage: View {
                         toggle(L("Mains active in surround mode (unchecked = mains muted)"), Reg.mtss)
                         Text(L("Sample rate: %d Hz (change it in Audio MIDI Setup)", m.sampleRate))
                             .font(.caption).foregroundColor(.secondary)
+                    }.padding(6)
+                }
+                GroupBox(L("Driver")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let mode = driver.mode {
+                            Picker(L("Operation mode"), selection: Binding(get: { mode }, set: { driver.set($0) })) {
+                                Text(L("Lowest latency")).tag(0)
+                                Text(L("Normal (default)")).tag(1)
+                                Text(L("Safe")).tag(2)
+                                Text(L("Safest")).tag(3)
+                            }
+                            .pickerStyle(.segmented)
+                            .disabled(driver.busy)
+                            if let o = driver.offsets, o.rate > 0 {
+                                Text(L("Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total).",
+                                       o.rate, o.output, o.input,
+                                       String(format: "%.1f", locale: Locale.current,
+                                              Double(o.output + o.input) * 1000 / Double(o.rate))))
+                                    .font(.caption.monospacedDigit())
+                            }
+                            Text(L("A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting."))
+                                .font(.caption).foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            Text(L("PreSonus driver not loaded: operation mode unavailable."))
+                                .font(.caption).foregroundColor(.secondary)
+                        }
                     }.padding(6)
                 }
                 GroupBox(L("Backups")) {
@@ -275,6 +303,7 @@ struct SettingsPage: View {
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
+        .onAppear { driver.refresh() }
     }
 
     func toggle(_ title: String, _ off: UInt32) -> some View {

@@ -4,11 +4,18 @@ Small C tools to explore the FireStudio mixer area (`0xFFFFE0700000`).
 Quit the FireStudio Mixer app before using them: FireWire access is exclusive.
 
 ```sh
-make            # builds build/raw, build/dumpr, build/scan, build/wq
+make            # builds build/raw, build/dumpr, build/scan, build/wq, build/opmode
 build/scan                    # address ranges that respond (read only)
 build/raw e0700000 1290       # dumps the mixer area as "index value" (read only)
 build/dumpr e0700000 64       # compact view with ASCII (read only)
 build/wq 10ac 24              # WRITES one quadlet (offset in the area, value), then reads it back
+```
+
+`opmode` talks to the PreSonus driver, not to the interface, and can run while the app is open:
+
+```sh
+build/opmode                  # prints the driver operation mode (0-3)
+build/opmode 2                # sets it (restarts the audio stream), see ../../docs/driver-settings.md
 ```
 
 `wq` refuses any offset outside the parameters (`0x0038`–`0x1164`): the header, names and meters are

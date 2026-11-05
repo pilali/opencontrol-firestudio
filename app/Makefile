@@ -13,7 +13,7 @@ MINOS   = 12.0
 APP  = build/FireStudio Mixer.app
 BIN  = $(APP)/Contents/MacOS/FireStudioMixer
 ICNS = build/AppIcon.icns
-SWIFT = Sources/L10n.swift Sources/RegisterMap.swift Sources/MixerModel.swift Sources/Controls.swift Sources/Presets.swift Sources/Views.swift
+SWIFT = Sources/L10n.swift Sources/RegisterMap.swift Sources/MixerModel.swift Sources/Controls.swift Sources/Presets.swift Sources/DriverSettings.swift Sources/Views.swift
 
 all: $(BIN)
 

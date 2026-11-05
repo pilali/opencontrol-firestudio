@@ -62,3 +62,12 @@
 "“%@” is already active" = "”%@” on jo käytössä";
 "“%@” recalled (%d parameters)" = "”%@” palautettu (%d parametria)";
 "“%@” stored" = "”%@” tallennettu";
+"Driver" = "Ajuri";
+"Operation mode" = "Toimintatila";
+"Lowest latency" = "Pienin viive";
+"Normal (default)" = "Normaali (oletus)";
+"Safe" = "Turvallinen";
+"Safest" = "Erittäin turvallinen";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Ajurin turvapuskuri %d Hz:ssä: lähtö %d, tulo %d näytettä (%@ ms yhteensä).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Korkeampi tila lisää hieman viivettä mutta tekee toistosta kestävämmän katkoksia ja rätinää vastaan. Vaihto käynnistää äänivirran hetkeksi uudelleen; PreSonus-ajuri muistaa asetuksen.";
+"PreSonus driver not loaded: operation mode unavailable." = "PreSonus-ajuria ei ole ladattu: toimintatila ei käytettävissä.";

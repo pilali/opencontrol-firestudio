@@ -62,3 +62,12 @@
 "“%@” is already active" = "“%@” zaten etkin";
 "“%@” recalled (%d parameters)" = "“%@” geri çağrıldı (%d parametre)";
 "“%@” stored" = "“%@” kaydedildi";
+"Driver" = "Sürücü";
+"Operation mode" = "Çalışma modu";
+"Lowest latency" = "En düşük gecikme";
+"Normal (default)" = "Normal (varsayılan)";
+"Safe" = "Güvenli";
+"Safest" = "En güvenli";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "%d Hz'de sürücü güvenlik arabelleği: çıkış %d, giriş %d örnek (toplam %@ ms).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Daha yüksek bir mod gecikmeyi biraz artırır ancak çalmayı kesintilere ve cızırtılara karşı daha dayanıklı hale getirir. Değişiklik ses akışını kısa süreliğine yeniden başlatır; PreSonus sürücüsü ayarı hatırlar.";
+"PreSonus driver not loaded: operation mode unavailable." = "PreSonus sürücüsü yüklü değil: çalışma modu kullanılamıyor.";

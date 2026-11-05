@@ -62,3 +62,12 @@
 "“%@” is already active" = "”%@” är redan aktiv";
 "“%@” recalled (%d parameters)" = "”%@” återkallad (%d parametrar)";
 "“%@” stored" = "”%@” sparad";
+"Driver" = "Drivrutin";
+"Operation mode" = "Driftläge";
+"Lowest latency" = "Lägsta latens";
+"Normal (default)" = "Normal (standard)";
+"Safe" = "Säker";
+"Safest" = "Mycket säker";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Drivrutinens säkerhetsbuffert vid %d Hz: utgång %d, ingång %d samplingar (%@ ms totalt).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Ett högre läge ger lite mer latens men gör uppspelningen tåligare mot avbrott och knaster. Bytet startar om ljudströmmen kort; PreSonus-drivrutinen kommer ihåg inställningen.";
+"PreSonus driver not loaded: operation mode unavailable." = "PreSonus-drivrutinen är inte inläst: driftläget är inte tillgängligt.";

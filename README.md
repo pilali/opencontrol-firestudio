@@ -17,6 +17,7 @@ zero-latency monitoring, output routing and headphone feeds. OpenControl fills t
 - **6 presets** recalled with one click
 - **Automatic backup** of the full device state on every connection, with restore
 - Scroll wheel for fine steps (±0.375 dB, ⇧ ×8), ⌥-drag for fine adjustment, double-click to reset to 0 dB / center
+- **Driver operation mode**: the latency / robustness setting Universal Control used to offer (see [docs/driver-settings.md](docs/driver-settings.md))
 - **Standalone use**: settings are stored in the interface itself and keep working without a computer
 
 ## Standalone use

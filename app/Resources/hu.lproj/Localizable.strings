@@ -62,3 +62,12 @@
 "“%@” is already active" = "„%@” már aktív";
 "“%@” recalled (%d parameters)" = "„%@” betöltve (%d paraméter)";
 "“%@” stored" = "„%@” mentve";
+"Driver" = "Illesztőprogram";
+"Operation mode" = "Üzemmód";
+"Lowest latency" = "Legkisebb késleltetés";
+"Normal (default)" = "Normál (alapértelmezett)";
+"Safe" = "Biztonságos";
+"Safest" = "Legbiztonságosabb";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Az illesztőprogram biztonsági puffere %d Hz-en: kimenet %d, bemenet %d minta (összesen %@ ms).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "A magasabb mód kissé növeli a késleltetést, de a lejátszás ellenállóbb lesz a kiesésekkel és recsegéssel szemben. A váltás röviden újraindítja a hangfolyamot; a PreSonus illesztőprogram megjegyzi a beállítást.";
+"PreSonus driver not loaded: operation mode unavailable." = "A PreSonus illesztőprogram nincs betöltve: az üzemmód nem érhető el.";

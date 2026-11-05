@@ -62,3 +62,12 @@
 "“%@” is already active" = "„%@“ ist bereits aktiv";
 "“%@” recalled (%d parameters)" = "„%@“ abgerufen (%d Parameter)";
 "“%@” stored" = "„%@“ gespeichert";
+"Driver" = "Treiber";
+"Operation mode" = "Betriebsmodus";
+"Lowest latency" = "Minimale Latenz";
+"Normal (default)" = "Normal (Standard)";
+"Safe" = "Sicher";
+"Safest" = "Sehr sicher";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Sicherheitspuffer des Treibers bei %d Hz: Ausgang %d, Eingang %d Samples (%@ ms insgesamt).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Ein höherer Modus erhöht die Latenz etwas, macht die Wiedergabe aber robuster gegen Aussetzer und Knackser. Beim Umschalten startet der Audiostream kurz neu; der PreSonus-Treiber merkt sich die Einstellung.";
+"PreSonus driver not loaded: operation mode unavailable." = "PreSonus-Treiber nicht geladen: Betriebsmodus nicht verfügbar.";

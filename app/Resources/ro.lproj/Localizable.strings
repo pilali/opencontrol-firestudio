@@ -62,3 +62,12 @@
 "“%@” is already active" = "„%@” este deja activ";
 "“%@” recalled (%d parameters)" = "„%@” reapelat (%d parametri)";
 "“%@” stored" = "„%@” salvat";
+"Driver" = "Driver";
+"Operation mode" = "Mod de funcționare";
+"Lowest latency" = "Latență minimă";
+"Normal (default)" = "Normal (implicit)";
+"Safe" = "Sigur";
+"Safest" = "Foarte sigur";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Bufferul de siguranță al driverului la %d Hz: ieșire %d, intrare %d eșantioane (%@ ms în total).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Un mod mai mare adaugă puțină latență, dar face redarea mai rezistentă la întreruperi și pârâituri. Schimbarea repornește scurt fluxul audio; driverul PreSonus reține setarea.";
+"PreSonus driver not loaded: operation mode unavailable." = "Driverul PreSonus nu este încărcat: modul de funcționare nu este disponibil.";

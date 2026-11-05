@@ -62,3 +62,12 @@
 "“%@” is already active" = "„%@“ je již aktivní";
 "“%@” recalled (%d parameters)" = "Vyvoláno „%@“ (parametrů: %d)";
 "“%@” stored" = "Uloženo „%@“";
+"Driver" = "Ovladač";
+"Operation mode" = "Provozní režim";
+"Lowest latency" = "Nejnižší latence";
+"Normal (default)" = "Normální (výchozí)";
+"Safe" = "Bezpečný";
+"Safest" = "Nejbezpečnější";
+"Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Bezpečnostní vyrovnávací paměť ovladače při %d Hz: výstup %d, vstup %d vzorků (celkem %@ ms).";
+"A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Vyšší režim přidá trochu latence, ale přehrávání bude odolnější proti výpadkům a praskání. Změna krátce restartuje audio stream; ovladač PreSonus si nastavení pamatuje.";
+"PreSonus driver not loaded: operation mode unavailable." = "Ovladač PreSonus není načten: provozní režim není k dispozici.";
