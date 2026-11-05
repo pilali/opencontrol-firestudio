@@ -124,6 +124,12 @@ struct MixTabs: View {
 /// Sizes the window to the two-row mixer: its natural size becomes the maximum content size (no empty
 /// margins), and the window is set to that size on the first launch of this layout or when it is larger.
 /// Smaller windows remain possible, the mixer then scrolls.
+final class WindowLimits: ObservableObject {
+    static let shared = WindowLimits()
+    /// Natural content size of the window with the two-row mixer (nil until measured).
+    @Published var maxContent: CGSize?
+}
+
 enum WindowFitter {
     private static let key = "fittedLayout"
     private static let layout = 3
@@ -145,6 +151,7 @@ enum WindowFitter {
         let target = NSSize(width: min(ceil(current.width + content.width - viewport.width) + 2, screen.width),
                             height: min(ceil(current.height + content.height - viewport.height) + 2, screen.height - chrome))
         win.contentMaxSize = target
+        WindowLimits.shared.maxContent = target     // SwiftUI recomputes the window limits from the root view
         let first = UserDefaults.standard.integer(forKey: key) < layout
         UserDefaults.standard.set(layout, forKey: key)
         guard first || current.width > target.width || current.height > target.height else { return }
@@ -355,6 +362,7 @@ struct SettingsPage: View {
 
 struct ContentView: View {
     @EnvironmentObject var m: MixerModel
+    @ObservedObject private var limits = WindowLimits.shared
     @State private var tab = 0
 
     var body: some View {
@@ -386,7 +394,8 @@ struct ContentView: View {
             .padding(12)
         }
         .frame(minWidth: 900, minHeight: 560, alignment: .top)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: limits.maxContent?.width ?? .infinity,
+               maxHeight: limits.maxContent?.height ?? .infinity, alignment: .top)
         .background(Theme.window)
         .preferredColorScheme(.dark)
         .onAppear { ScrollRouter.shared.install() }
