@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Az illesztőprogram biztonsági puffere %d Hz-en: kimenet %d, bemenet %d minta (összesen %@ ms).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "A magasabb mód kissé növeli a késleltetést, de a lejátszás ellenállóbb lesz a kiesésekkel és recsegéssel szemben. A váltás röviden újraindítja a hangfolyamot; a PreSonus illesztőprogram megjegyzi a beállítást.";
 "PreSonus driver not loaded: operation mode unavailable." = "A PreSonus illesztőprogram nincs betöltve: az üzemmód nem érhető el.";
+"Clock source" = "Órajelforrás";
+"Internal" = "Belső";
+"Locked" = "Szinkronban";
+"Not locked" = "Nincs szinkronban";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Használja a Belső beállítást, hacsak nem egy másik eszköz az órajel-mester. Ha az interfész S/PDIF, ADAT vagy word clock jelet követ, néma marad, amíg érvényes jelet nem kap azon a bemeneten.";
+"Stream errors" = "Adatfolyam-hibák";
+"Reset" = "Nullázás";
+"Playback %d · recording %d · timing %d" = "Lejátszás %d · felvétel %d · időzítés %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Az illesztőprogram által a FireWire hangfolyamban számolt kiesések. Nullázza, játssza le a projektet, majd ellenőrizze: ha a számláló 0 marad, nem az interfész a hiba oka.";

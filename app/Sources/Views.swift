@@ -261,35 +261,7 @@ struct SettingsPage: View {
                             .font(.caption).foregroundColor(.secondary)
                     }.padding(6).frame(maxHeight: .infinity, alignment: .top)
                 }.fixedSize(horizontal: true, vertical: false)
-                GroupBox(L("Driver")) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if let mode = driver.mode {
-                            Text(L("Operation mode")).font(.callout.weight(.semibold))
-                            Picker(L("Operation mode"), selection: Binding(get: { mode }, set: { driver.set($0) })) {
-                                Text(L("Lowest latency")).tag(0)
-                                Text(L("Normal (default)")).tag(1)
-                                Text(L("Safe")).tag(2)
-                                Text(L("Safest")).tag(3)
-                            }
-                            .pickerStyle(.radioGroup)
-                            .labelsHidden()
-                            .disabled(driver.busy)
-                            if let o = driver.offsets, o.rate > 0 {
-                                Text(L("Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total).",
-                                       o.rate, o.output, o.input,
-                                       String(format: "%.1f", locale: Locale.current,
-                                              Double(o.output + o.input) * 1000 / Double(o.rate))))
-                                    .font(.caption.monospacedDigit())
-                            }
-                            Text(L("A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting."))
-                                .font(.caption).foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } else {
-                            Text(L("PreSonus driver not loaded: operation mode unavailable."))
-                                .font(.caption).foregroundColor(.secondary)
-                        }
-                    }.padding(6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                }
+                DriverBox(driver: driver)
                 }.fixedSize(horizontal: false, vertical: true)
                 GroupBox(L("Backups")) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -307,7 +279,8 @@ struct SettingsPage: View {
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onAppear { driver.refresh() }
+        .onAppear { driver.start() }
+        .onDisappear { driver.stop() }
     }
 
     func toggle(_ title: String, _ off: UInt32) -> some View {
@@ -383,5 +356,104 @@ struct FireStudioMixerApp: App {
         WindowGroup("FireStudio Mixer") {
             ContentView().environmentObject(model).environmentObject(presets)
         }
+    }
+}
+
+/// Settings of the PreSonus driver: operation mode, clock source, stream error counters.
+struct DriverBox: View {
+    @EnvironmentObject var m: MixerModel
+    @ObservedObject var driver: DriverModel
+
+    var body: some View {
+        GroupBox(L("Driver")) {
+            VStack(alignment: .leading, spacing: 8) {
+                if let mode = driver.mode {
+                    opModeSection(mode)
+                    Divider()
+                    clockSection
+                    Divider()
+                    errorSection
+                } else {
+                    Text(L("PreSonus driver not loaded: operation mode unavailable."))
+                        .font(.caption).foregroundColor(.secondary)
+                }
+            }.padding(6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+
+    func opModeSection(_ mode: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L("Operation mode")).font(.callout.weight(.semibold))
+            Picker(L("Operation mode"), selection: Binding(get: { mode }, set: { driver.set($0) })) {
+                Text(L("Lowest latency")).tag(0)
+                Text(L("Normal (default)")).tag(1)
+                Text(L("Safe")).tag(2)
+                Text(L("Safest")).tag(3)
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
+            .disabled(driver.busy)
+            if let o = driver.offsets, o.rate > 0 {
+                Text(L("Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total).",
+                       o.rate, o.output, o.input, DriverBox.ms(o.output + o.input, o.rate)))
+                    .font(.caption.monospacedDigit())
+            }
+            Text(L("A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting."))
+                .font(.caption).foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    var clockSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Text(L("Clock source")).font(.callout.weight(.semibold))
+                Picker(L("Clock source"), selection: Binding(get: { driver.clock ?? 8 }, set: { driver.setClock($0) })) {
+                    ForEach(DriverSettings.clockSources, id: \.item) { Text($0.name).tag($0.item) }
+                }
+                .labelsHidden()
+                .frame(maxWidth: 160)
+                .disabled(driver.busy || driver.clock == nil)
+                lockBadge
+            }
+            Text(L("Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input."))
+                .font(.caption).foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder var lockBadge: some View {
+        if let locked = m.clockLocked {
+            HStack(spacing: 4) {
+                Circle().fill(locked ? Color.green : Color.red).frame(width: 8, height: 8)
+                Text(locked ? L("Locked") : L("Not locked")).font(.caption)
+            }
+        }
+    }
+
+    var errorSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Text(L("Stream errors")).font(.callout.weight(.semibold))
+                if let e = driver.errors {
+                    Text(verbatim: "\(e.total)")
+                        .font(.callout.monospacedDigit().weight(.semibold))
+                        .foregroundColor(e.total == 0 ? .green : .orange)
+                }
+                Spacer()
+                Button(L("Reset")) { driver.resetErrors() }.disabled(driver.errors == nil)
+            }
+            if let e = driver.errors {
+                Text(L("Playback %d · recording %d · timing %d", e.playback, e.recording, e.timing))
+                    .font(.caption.monospacedDigit())
+            }
+            Text(L("Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause."))
+                .font(.caption).foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    static func ms(_ samples: Int, _ rate: Int) -> String {
+        String(format: "%.1f", locale: Locale.current, Double(samples) * 1000 / Double(rate))
     }
 }

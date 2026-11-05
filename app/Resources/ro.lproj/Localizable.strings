@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Bufferul de siguranță al driverului la %d Hz: ieșire %d, intrare %d eșantioane (%@ ms în total).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Un mod mai mare adaugă puțină latență, dar face redarea mai rezistentă la întreruperi și pârâituri. Schimbarea repornește scurt fluxul audio; driverul PreSonus reține setarea.";
 "PreSonus driver not loaded: operation mode unavailable." = "Driverul PreSonus nu este încărcat: modul de funcționare nu este disponibil.";
+"Clock source" = "Sursă de ceas";
+"Internal" = "Intern";
+"Locked" = "Sincronizat";
+"Not locked" = "Nesincronizat";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Folosiți Intern, cu excepția cazului în care alt dispozitiv este master de ceas. Când interfața urmează S/PDIF, ADAT sau word clock, rămâne fără sunet până primește un semnal valid pe acea intrare.";
+"Stream errors" = "Erori de flux";
+"Reset" = "Resetare";
+"Playback %d · recording %d · timing %d" = "Redare %d · înregistrare %d · sincronizare %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Întreruperi numărate de driver în fluxul audio FireWire. Resetați, redați proiectul, apoi verificați: dacă numărătorul rămâne la 0, interfața nu este cauza.";

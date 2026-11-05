@@ -23,7 +23,7 @@ build/fsfw-%.o: Sources/fsfw.c Sources/fsfw.h
 
 build/FireStudioMixer-%: build/fsfw-%.o $(SWIFT)
 	swiftc -O -parse-as-library -target $*-apple-macosx$(MINOS) -import-objc-header Sources/fsfw.h \
-	  $(SWIFT) $< -framework IOKit -framework CoreFoundation -o $@
+	  $(SWIFT) $< -framework IOKit -framework CoreAudio -framework CoreFoundation -o $@
 
 $(ICNS): tools/make_icon.swift
 	mkdir -p build/AppIcon.iconset

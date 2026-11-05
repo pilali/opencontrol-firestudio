@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Ajurin turvapuskuri %d Hz:ssä: lähtö %d, tulo %d näytettä (%@ ms yhteensä).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Korkeampi tila lisää hieman viivettä mutta tekee toistosta kestävämmän katkoksia ja rätinää vastaan. Vaihto käynnistää äänivirran hetkeksi uudelleen; PreSonus-ajuri muistaa asetuksen.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-ajuria ei ole ladattu: toimintatila ei käytettävissä.";
+"Clock source" = "Kellolähde";
+"Internal" = "Sisäinen";
+"Locked" = "Lukittu";
+"Not locked" = "Ei lukittu";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Käytä Sisäistä, ellei jokin toinen laite ole kellon isäntä. Kun liitäntä seuraa S/PDIF-, ADAT- tai word clock -signaalia, se on hiljaa, kunnes kyseiseen tuloon tulee kelvollinen signaali.";
+"Stream errors" = "Virran virheet";
+"Reset" = "Nollaa";
+"Playback %d · recording %d · timing %d" = "Toisto %d · tallennus %d · ajoitus %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Ajurin laskemat katkokset FireWire-äänivirrassa. Nollaa, toista projekti ja tarkista: jos laskuri pysyy nollassa, liitäntä ei ole syy.";

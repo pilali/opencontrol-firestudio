@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Veiligheidsbuffer van de driver bij %d Hz: uitgang %d, ingang %d samples (%@ ms in totaal).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Een hogere modus voegt wat latentie toe maar maakt het afspelen beter bestand tegen haperingen en klikken. Wisselen herstart de audiostream kort; de PreSonus-driver onthoudt de instelling.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-driver niet geladen: bedrijfsmodus niet beschikbaar.";
+"Clock source" = "Klokbron";
+"Internal" = "Intern";
+"Locked" = "Vergrendeld";
+"Not locked" = "Niet vergrendeld";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Gebruik Intern, tenzij een ander apparaat de klokmaster is. Volgt de interface S/PDIF, ADAT of wordclock, dan blijft hij stil tot er een geldig signaal op die ingang binnenkomt.";
+"Stream errors" = "Streamfouten";
+"Reset" = "Resetten";
+"Playback %d · recording %d · timing %d" = "Afspelen %d · opnemen %d · timing %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Haperingen die de driver telt in de FireWire-audiostream. Reset, speel het project af en controleer: blijft de teller op 0, dan ligt het niet aan de interface.";

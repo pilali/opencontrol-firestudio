@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "%d Hz'de sürücü güvenlik arabelleği: çıkış %d, giriş %d örnek (toplam %@ ms).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Daha yüksek bir mod gecikmeyi biraz artırır ancak çalmayı kesintilere ve cızırtılara karşı daha dayanıklı hale getirir. Değişiklik ses akışını kısa süreliğine yeniden başlatır; PreSonus sürücüsü ayarı hatırlar.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus sürücüsü yüklü değil: çalışma modu kullanılamıyor.";
+"Clock source" = "Saat kaynağı";
+"Internal" = "Dahili";
+"Locked" = "Kilitli";
+"Not locked" = "Kilitli değil";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Başka bir cihaz saat yöneticisi değilse Dahili'yi kullanın. Arabirim S/PDIF, ADAT veya word clock'u izlediğinde, o girişte geçerli bir sinyal alana kadar sessiz kalır.";
+"Stream errors" = "Akış hataları";
+"Reset" = "Sıfırla";
+"Playback %d · recording %d · timing %d" = "Çalma %d · kayıt %d · zamanlama %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Sürücünün FireWire ses akışında saydığı kesintiler. Sıfırlayın, projeyi çalın, sonra kontrol edin: sayaç 0'da kalırsa sorun arabirimde değildir.";

@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus driver not loaded: operation mode unavailable.";
+"Clock source" = "Clock source";
+"Internal" = "Internal";
+"Locked" = "Locked";
+"Not locked" = "Not locked";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input.";
+"Stream errors" = "Stream errors";
+"Reset" = "Reset";
+"Playback %d · recording %d · timing %d" = "Playback %d · recording %d · timing %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause.";

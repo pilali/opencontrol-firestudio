@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Bezpečnostní vyrovnávací paměť ovladače při %d Hz: výstup %d, vstup %d vzorků (celkem %@ ms).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Vyšší režim přidá trochu latence, ale přehrávání bude odolnější proti výpadkům a praskání. Změna krátce restartuje audio stream; ovladač PreSonus si nastavení pamatuje.";
 "PreSonus driver not loaded: operation mode unavailable." = "Ovladač PreSonus není načten: provozní režim není k dispozici.";
+"Clock source" = "Zdroj hodin";
+"Internal" = "Interní";
+"Locked" = "Zamčeno";
+"Not locked" = "Nezamčeno";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Použijte Interní, pokud není hodinovým masterem jiné zařízení. Když rozhraní sleduje S/PDIF, ADAT nebo word clock, zůstane ztlumené, dokud na tomto vstupu nepřijme platný signál.";
+"Stream errors" = "Chyby streamu";
+"Reset" = "Vynulovat";
+"Playback %d · recording %d · timing %d" = "Přehrávání %d · nahrávání %d · časování %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Výpadky zaznamenané ovladačem ve zvukovém streamu FireWire. Vynulujte, přehrajte projekt a zkontrolujte: pokud čítač zůstane na 0, příčinou není rozhraní.";

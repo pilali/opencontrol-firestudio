@@ -10,6 +10,9 @@ final class MixerModel: ObservableObject {
     let meterStore = MeterStore.shared
     private var meterBusy = false
     @Published private(set) var sampleRate: Int = 0
+    /// DICE global STATUS bit 0: the interface is locked to the selected clock source.
+    @Published private(set) var clockLocked: Bool?
+    private var statusTick = 0
     @Published private(set) var lastBackup: URL?
     @Published var selectedMix = 0
 
@@ -44,7 +47,7 @@ final class MixerModel: ObservableObject {
             var buf = [UInt32](repeating: 0, count: Reg.quadlets)
             let r = fs_read(0, &buf, UInt32(Reg.quadlets))
             var rate: UInt32 = 0
-            _ = fs_read_abs(0xE0000000 + 0x28 + 0x5C, &rate)    // DICE global section: sample rate
+            _ = fs_read_abs(Reg.diceGlobal + 0x5C, &rate)    // DICE global section: sample rate
             DispatchQueue.main.async {
                 if r != 0 { self.status = L("Read error (%d)", Int(r)); fs_close(); return }
                 self.objectWillChange.send()
@@ -74,6 +77,8 @@ final class MixerModel: ObservableObject {
     private func pollMeters() {
         guard connected, !meterBusy else { return }   // never pile up requests if the bus is slow
         meterBusy = true
+        statusTick += 1
+        if statusTick >= 12 { statusTick = 0; pollClockStatus() }
         io.async {
             var q = [UInt32](repeating: 0, count: Int(Reg.meterQuadlets))
             let r = fs_read(Reg.metersBase, &q, Reg.meterQuadlets)
@@ -81,6 +86,21 @@ final class MixerModel: ObservableObject {
             var bytes = [UInt8](repeating: 0, count: 60)
             for i in 0..<60 { bytes[i] = UInt8((q[i / 4] >> (8 * UInt32(i % 4))) & 0xFF) }
             DispatchQueue.main.async { self.meterBusy = false; self.meterStore.update(bytes) }
+        }
+    }
+
+    /// Reads the DICE global STATUS and SAMPLE_RATE registers (about once per second).
+    private func pollClockStatus() {
+        io.async {
+            var st: UInt32 = 0, rate: UInt32 = 0
+            let r1 = fs_read_abs(Reg.diceGlobal + 0x54, &st)
+            let r2 = fs_read_abs(Reg.diceGlobal + 0x5C, &rate)
+            guard r1 == 0, r2 == 0 else { return }
+            DispatchQueue.main.async {
+                let locked = st & 1 == 1
+                if self.clockLocked != locked { self.clockLocked = locked }
+                if locked, rate > 0, self.sampleRate != Int(rate) { self.sampleRate = Int(rate) }
+            }
         }
     }
 

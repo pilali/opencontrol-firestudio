@@ -18,6 +18,8 @@ Dispatch table (`PaeFireStudioUserClient::externalMethod`), the entries used by 
 | Selector | Method | Input | Output |
 |---|---|---|---|
 | 0 | GetVersion | — | 2 scalars (`[1]` = interface version `0x1007`) |
+| 12 | GetAudioErrorCount | — | 0x20-byte struct (see below) |
+| 13 | ClearAudioErrorCount | — | — |
 | 7 | GetOpMode | — | 4-byte struct (`uint32` mode) |
 | 8 | SetOpMode | 4-byte struct (`uint32` mode, 0–3) | — |
 | 25 | GetDriverSettings | — | 0xA18-byte struct |
@@ -41,6 +43,43 @@ measured at 48 kHz:
 They are visible in the I/O Registry as `IOAudioEngineSampleOffset` and `IOAudioEngineInputSampleOffset`
 on `PaeFireStudioAudioEngine`. The labels in OpenControl (Lowest latency, Normal, Safe, Safest) are descriptive;
 the original Universal Control names are not known.
+
+## Stream error counters
+
+`GetAudioErrorCount` returns three `uint32` counters, reset when the driver loads and by `ClearAudioErrorCount`:
+
+| Offset | Incremented in | Meaning |
+|---|---|---|
+| `+0x10` | `ReadFirewireBuffers` | receive errors (recording stream) |
+| `+0x18` | `FillFirewireBuffers` | transmit errors (playback stream) |
+| `+0x1C` | `SendGroupCallback` | late transmit callbacks (timing) |
+
+OpenControl shows their sum, polled every 2 s while the Settings page is open.
+
+## Clock source
+
+The driver publishes the clock sources to Core Audio (`kAudioDevicePropertyClockSource`, device UID
+`PaeFireStudioAudioEngine:0`), the same setting as in Audio MIDI Setup. The names come from the device
+(DICE global `CLOCK_SOURCE_NAMES`: `SPDIF\ADAT\Word Clock\Unused\Unused\Unused\Unused\Internal`).
+Core Audio item *n* selects DICE source *n* for 0–7; item 8 selects the real internal clock (DICE `0x0C`).
+Measured mapping:
+
+| Core Audio item | DICE `CLOCK_SELECT` | Source |
+|---|---|---|
+| 0 | `0x200` | S/PDIF |
+| 1 | `0x201` | ADAT |
+| 2 | `0x202` | Word Clock |
+| 3–6 | — | "Unused" |
+| 7 | `0x207` | duplicate "Internal" name, not the internal clock: not offered |
+| 8 | `0x20C` | Internal |
+
+The lock state is read over FireWire in the DICE global section (`0xFFFFE0000028`, offset given by quadlet 0
+of the DICE space): `+0x54` STATUS, bit 0 = locked, bits 8–15 = nominal rate index; `+0x5C` SAMPLE_RATE in Hz.
+`+0x58` EXT_STATUS reads `0xC0` on internal clock (the two receive streams from the Mac). While unlocked the
+DICE stops the streams (ENABLE = 0) and the interface is silent.
+
+The driver also has `SetClock` (4), `SetSync` (5) and `SetMaster` (6). They concern several DICE devices on
+the same FireWire bus and are not used by OpenControl.
 
 ## Persistence
 

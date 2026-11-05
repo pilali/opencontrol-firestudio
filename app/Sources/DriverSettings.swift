@@ -1,5 +1,6 @@
 import Foundation
 import IOKit
+import CoreAudio
 
 /// Operation mode of the PreSonus FireWire audio driver (PaeFireStudio.kext, TC Applied Technologies DICE driver).
 ///
@@ -43,6 +44,64 @@ enum DriverSettings {
         } ?? false
     }
 
+    /// Stream error counters kept by the driver since it loaded or since the last reset (selector 12, 0x20 bytes):
+    /// +0x10 receive errors (ReadFirewireBuffers), +0x18 transmit errors (FillFirewireBuffers),
+    /// +0x1C late transmit callbacks (SendGroupCallback).
+    static func errorCounts() -> ErrorCounts? {
+        withConnection { c in
+            var b = [UInt32](repeating: 0, count: 8)
+            var size = 0x20
+            guard IOConnectCallStructMethod(c, 12, nil, 0, &b, &size) == KERN_SUCCESS else { return nil }
+            return ErrorCounts(playback: Int(b[6]), recording: Int(b[4]), timing: Int(b[7]))
+        }
+    }
+
+    /// Selector 13: resets the three counters.
+    static func clearErrorCounts() {
+        _ = withConnection { c in IOConnectCallStructMethod(c, 13, nil, 0, nil, nil) }
+    }
+
+    // MARK: Clock source (through Core Audio, like Audio MIDI Setup)
+
+    /// Core Audio clock source items published by the driver. Items 3-6 are "Unused" and item 7 is a
+    /// duplicate "Internal" (DICE source 7); the real internal clock is item 8 (DICE source 0x0C).
+    static let clockSources: [(item: UInt32, name: String)] = [
+        (8, L("Internal")), (0, "S/PDIF"), (1, "ADAT"), (2, "Word Clock")]
+
+    private static func device() -> AudioDeviceID? {
+        var uid = "PaeFireStudioAudioEngine:0" as CFString
+        var dev = AudioDeviceID(0)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        var addr = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyTranslateUIDToDevice,
+                                              mScope: kAudioObjectPropertyScopeGlobal,
+                                              mElement: kAudioObjectPropertyElementMain)
+        let st = withUnsafeMutablePointer(to: &uid) { p in
+            AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr,
+                                       UInt32(MemoryLayout<CFString>.size), p, &size, &dev)
+        }
+        return st == noErr && dev != 0 ? dev : nil
+    }
+
+    private static let clockAddr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyClockSource,
+                                                              mScope: kAudioObjectPropertyScopeGlobal,
+                                                              mElement: kAudioObjectPropertyElementMain)
+
+    static func clockSource() -> UInt32? {
+        guard let dev = device() else { return nil }
+        var addr = clockAddr
+        var v: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        return AudioObjectGetPropertyData(dev, &addr, 0, nil, &size, &v) == noErr ? v : nil
+    }
+
+    @discardableResult
+    static func setClockSource(_ item: UInt32) -> Bool {
+        guard let dev = device() else { return false }
+        var addr = clockAddr
+        var v = item
+        return AudioObjectSetPropertyData(dev, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &v) == noErr
+    }
+
     /// Safety offsets the driver reports to Core Audio, in samples, and the stream sample rate.
     static func safetyOffsets() -> (output: Int, input: Int, rate: Int)? {
         let svc = IOServiceGetMatchingService(0, IOServiceMatching("PaeFireStudioAudioEngine"))
@@ -58,17 +117,67 @@ enum DriverSettings {
     }
 }
 
+struct ErrorCounts: Equatable {
+    var playback = 0, recording = 0, timing = 0
+    var total: Int { playback + recording + timing }
+}
+
 /// View state for the driver section of the settings page.
 final class DriverModel: ObservableObject {
     @Published private(set) var mode: Int?
     @Published private(set) var offsets: (output: Int, input: Int, rate: Int)?
     @Published private(set) var busy = false
+    @Published private(set) var errors: ErrorCounts?
+    @Published private(set) var clock: UInt32?
+    private var timer: Timer?
 
     func refresh() {
         DispatchQueue.global(qos: .userInitiated).async {
             let m = DriverSettings.opMode()
             let o = DriverSettings.safetyOffsets()
-            DispatchQueue.main.async { self.mode = m; self.offsets = o }
+            let e = DriverSettings.errorCounts()
+            let c = DriverSettings.clockSource()
+            DispatchQueue.main.async { self.mode = m; self.offsets = o; self.errors = e; self.clock = c }
+        }
+    }
+
+    /// Polls the counters and the clock source while the settings page is visible.
+    func start() {
+        refresh()
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            DispatchQueue.global(qos: .utility).async {
+                let e = DriverSettings.errorCounts()
+                let c = DriverSettings.clockSource()
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if e != self.errors { self.errors = e }
+                    if c != self.clock, !self.busy { self.clock = c }
+                }
+            }
+        }
+    }
+
+    func stop() { timer?.invalidate(); timer = nil }
+
+    func resetErrors() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            DriverSettings.clearErrorCounts()
+            let e = DriverSettings.errorCounts()
+            DispatchQueue.main.async { self.errors = e }
+        }
+    }
+
+    func setClock(_ item: UInt32) {
+        guard item != clock, !busy else { return }
+        busy = true
+        clock = item
+        DispatchQueue.global(qos: .userInitiated).async {
+            DriverSettings.setClockSource(item)
+            Thread.sleep(forTimeInterval: 1.5)
+            let c = DriverSettings.clockSource()
+            let o = DriverSettings.safetyOffsets()
+            DispatchQueue.main.async { self.clock = c; self.offsets = o; self.busy = false }
         }
     }
 

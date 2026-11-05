@@ -4,6 +4,8 @@
 
 enum Reg {
     static let size: UInt32 = 0x1428
+    /// DICE global section (low address, high 0xFFFF): +0x4C CLOCK_SELECT, +0x54 STATUS, +0x5C SAMPLE_RATE.
+    static let diceGlobal: UInt32 = 0xE0000000 + 0x28
     static let quadlets = Int(size / 4)
 
     static let mixCount = 9

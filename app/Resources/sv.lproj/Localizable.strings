@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Drivrutinens säkerhetsbuffert vid %d Hz: utgång %d, ingång %d samplingar (%@ ms totalt).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Ett högre läge ger lite mer latens men gör uppspelningen tåligare mot avbrott och knaster. Bytet startar om ljudströmmen kort; PreSonus-drivrutinen kommer ihåg inställningen.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-drivrutinen är inte inläst: driftläget är inte tillgängligt.";
+"Clock source" = "Klockkälla";
+"Internal" = "Intern";
+"Locked" = "Låst";
+"Not locked" = "Inte låst";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Använd Intern om inte en annan enhet är klockmaster. När gränssnittet följer S/PDIF, ADAT eller wordclock är det tyst tills det får en giltig signal på den ingången.";
+"Stream errors" = "Strömfel";
+"Reset" = "Nollställ";
+"Playback %d · recording %d · timing %d" = "Uppspelning %d · inspelning %d · timing %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Avbrott som drivrutinen räknar i FireWire-ljudströmmen. Nollställ, spela projektet och kontrollera: om räknaren stannar på 0 är det inte gränssnittet som orsakar problemet.";

@@ -71,3 +71,12 @@
 "Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total)." = "Bufor bezpieczeństwa sterownika przy %d Hz: wyjście %d, wejście %d próbek (łącznie %@ ms).";
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Wyższy tryb dodaje nieco opóźnienia, ale czyni odtwarzanie odporniejszym na przerwy i trzaski. Zmiana na chwilę restartuje strumień audio; sterownik PreSonus zapamiętuje ustawienie.";
 "PreSonus driver not loaded: operation mode unavailable." = "Sterownik PreSonus nie jest załadowany: tryb pracy niedostępny.";
+"Clock source" = "Źródło zegara";
+"Internal" = "Wewnętrzne";
+"Locked" = "Zsynchronizowano";
+"Not locked" = "Brak synchronizacji";
+"Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input." = "Używaj zegara wewnętrznego, chyba że inne urządzenie jest nadrzędnym zegarem. Gdy interfejs podąża za S/PDIF, ADAT lub word clock, pozostaje wyciszony, dopóki nie otrzyma poprawnego sygnału na tym wejściu.";
+"Stream errors" = "Błędy strumienia";
+"Reset" = "Wyzeruj";
+"Playback %d · recording %d · timing %d" = "Odtwarzanie %d · nagrywanie %d · taktowanie %d";
+"Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Przerwy zliczone przez sterownik w strumieniu audio FireWire. Wyzeruj, odtwórz projekt i sprawdź: jeśli licznik pozostanie na 0, przyczyną nie jest interfejs.";
