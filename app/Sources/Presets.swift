@@ -44,8 +44,12 @@ final class PresetStore: ObservableObject {
     @Published var storeMode = false
     @Published var message = ""
 
+    /// Unit whose presets are loaded (presets are stored per unit GUID).
+    private(set) var unit: UInt64?
+
     private var folder: URL {
-        let url = Backup.appSupport.appendingPathComponent("Presets", isDirectory: true)
+        let base = unit.map(Backup.unitFolder) ?? Backup.appSupport
+        let url = base.appendingPathComponent("Presets", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -53,6 +57,13 @@ final class PresetStore: ObservableObject {
     private var namesFile: URL { folder.appendingPathComponent("names.json") }
 
     init() {
+        names = Array(repeating: "", count: PresetStore.count)
+        data = Array(repeating: nil, count: PresetStore.count)
+    }
+
+    /// Loads the presets of a unit; called when the connected unit changes.
+    func load(unit g: UInt64) {
+        unit = g
         names = Array(repeating: "", count: PresetStore.count)
         data = Array(repeating: nil, count: PresetStore.count)
         Backup.migrate(from: folder.appendingPathComponent("noms.json"), to: namesFile)
@@ -66,7 +77,7 @@ final class PresetStore: ObservableObject {
     func title(_ i: Int) -> String { names[i].isEmpty ? L("Preset %d", i + 1) : names[i] }
 
     func store(_ i: Int, _ m: MixerModel) {
-        guard m.connected else { return }
+        guard m.connected, unit != nil, unit == m.guid else { return }
         if Backup.write(m.regs, to: file(i)) {
             data[i] = m.regs
             flash(L("“%@” stored", title(i)))
@@ -77,17 +88,20 @@ final class PresetStore: ObservableObject {
     }
 
     func recall(_ i: Int, _ m: MixerModel) {
+        guard unit != nil, unit == m.guid else { return }
         guard let saved = data[i] else { flash(L("Empty slot — click STORE, then this slot")); return }
         let n = m.recall(saved)
         flash(n == 0 ? L("“%@” is already active", title(i)) : L("“%@” recalled (%d parameters)", title(i), n))
     }
 
     func rename(_ i: Int, _ name: String) {
+        guard unit != nil else { return }
         names[i] = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if let d = try? JSONEncoder().encode(names) { try? d.write(to: namesFile) }
     }
 
     func clear(_ i: Int) {
+        guard unit != nil else { return }
         try? FileManager.default.removeItem(at: file(i))
         data[i] = nil
         rename(i, "")

@@ -362,6 +362,7 @@ struct SettingsPage: View {
 
 struct ContentView: View {
     @EnvironmentObject var m: MixerModel
+    @EnvironmentObject var presets: PresetStore
     @ObservedObject private var limits = WindowLimits.shared
     @State private var tab = 0
 
@@ -399,6 +400,7 @@ struct ContentView: View {
         .background(Theme.window)
         .preferredColorScheme(.dark)
         .onAppear { ScrollRouter.shared.install() }
+        .onChange(of: m.guid) { g in if let g = g { presets.load(unit: g) } }
     }
 }
 

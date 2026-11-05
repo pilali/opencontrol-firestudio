@@ -101,6 +101,10 @@ The app talks directly to the DICE chip of the interface through asynchronous Fi
 
 FireWire access is exclusive: quit the app before using the probe tools.
 
+Backups and presets are stored per unit, under
+`~/Library/Application Support/FireStudioMixer/Units/<GUID>/`. Support for several units on the same bus is
+in preparation: the driver side is documented in [docs/driver-settings.md](docs/driver-settings.md).
+
 ## Disclaimer
 
 OpenControl is an independent project, **not affiliated with or endorsed by PreSonus**. "PreSonus",

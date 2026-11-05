@@ -10,6 +10,12 @@ final class MixerModel: ObservableObject {
     let meterStore = MeterStore.shared
     private var meterBusy = false
     @Published private(set) var sampleRate: Int = 0
+    /// GUID of the open unit, and GUIDs of all the FireStudio 26x26 units seen on the bus.
+    @Published private(set) var guid: UInt64?
+    @Published private(set) var units: [UInt64] = []
+    /// Open unit; only touched on the `io` queue.
+    private var unit: OpaquePointer?
+    private static let unitKey = "unitGUID"
     /// DICE global STATUS bit 0: the interface is locked to the selected clock source.
     @Published private(set) var clockLocked: Bool?
     private var statusTick = 0
@@ -37,22 +43,31 @@ final class MixerModel: ObservableObject {
 
     func connect() {
         io.async {
-            let o = fs_open()
-            guard o == 0 else {
-                let msg = o == -4 ? L("FireStudio in use by another program (exclusive access)")
-                                  : L("FireStudio not found (check the cable or adapter)")
-                DispatchQueue.main.async { self.status = msg }
+            var list = [UInt64](repeating: 0, count: 8)
+            let found = Array(list.prefix(Int(min(fs_list(&list, 8), 8))))
+            let preferred = UInt64(UserDefaults.standard.string(forKey: MixerModel.unitKey) ?? "", radix: 16) ?? 0
+            let target = found.contains(preferred) ? preferred : (found.first ?? 0)
+            var err: Int32 = 0
+            guard let u = fs_open(target, &err) else {
+                let msg = err == -4 ? L("FireStudio in use by another program (exclusive access)")
+                                    : L("FireStudio not found (check the cable or adapter)")
+                DispatchQueue.main.async { self.status = msg; self.units = found }
                 return
             }
             var buf = [UInt32](repeating: 0, count: Reg.quadlets)
-            let r = fs_read(0, &buf, UInt32(Reg.quadlets))
+            let r = fs_read(u, 0, &buf, UInt32(Reg.quadlets))
             var rate: UInt32 = 0
-            _ = fs_read_abs(Reg.diceGlobal + 0x5C, &rate)    // DICE global section: sample rate
+            _ = fs_read_abs(u, Reg.diceGlobal + 0x5C, &rate)    // DICE global section: sample rate
+            if r != 0 { fs_close(u) } else { self.unit = u }
+            let g = fs_guid(u)
             DispatchQueue.main.async {
-                if r != 0 { self.status = L("Read error (%d)", Int(r)); fs_close(); return }
+                if r != 0 { self.status = L("Read error (%d)", Int(r)); return }
                 self.objectWillChange.send()
                 self.regs = buf
                 self.sampleRate = Int(rate)
+                self.units = found
+                Backup.unit = g
+                self.guid = g
                 self.connected = true
                 self.status = L("Connected")
                 self.lastBackup = Backup.save(buf)
@@ -60,10 +75,20 @@ final class MixerModel: ObservableObject {
         }
     }
 
+    /// Switches to another unit (remembered for the next launches).
+    func select(unit g: UInt64) {
+        guard g != guid else { return }
+        UserDefaults.standard.set(String(g, radix: 16), forKey: MixerModel.unitKey)
+        connected = false
+        status = L("Searching for the FireStudio…")
+        io.async { fs_close(self.unit); self.unit = nil }
+        connect()
+    }
+
     func reloadFromDevice() {
         io.async {
             var buf = [UInt32](repeating: 0, count: Reg.quadlets)
-            let r = fs_read(0, &buf, UInt32(Reg.quadlets))
+            let r = fs_read(self.unit, 0, &buf, UInt32(Reg.quadlets))
             DispatchQueue.main.async { if r == 0 { self.objectWillChange.send(); self.regs = buf } else { self.lost(r) } }
         }
     }
@@ -71,7 +96,7 @@ final class MixerModel: ObservableObject {
     private func lost(_ code: Int32) {
         connected = false
         status = L("Connection lost (%d) — retrying…", Int(code))
-        io.async { fs_close() }
+        io.async { fs_close(self.unit); self.unit = nil }
     }
 
     private func pollMeters() {
@@ -81,7 +106,7 @@ final class MixerModel: ObservableObject {
         if statusTick >= 12 { statusTick = 0; pollClockStatus() }
         io.async {
             var q = [UInt32](repeating: 0, count: Int(Reg.meterQuadlets))
-            let r = fs_read(Reg.metersBase, &q, Reg.meterQuadlets)
+            let r = fs_read(self.unit, Reg.metersBase, &q, Reg.meterQuadlets)
             guard r == 0 else { DispatchQueue.main.async { self.meterBusy = false; self.lost(r) }; return }
             var bytes = [UInt8](repeating: 0, count: 60)
             for i in 0..<60 { bytes[i] = UInt8((q[i / 4] >> (8 * UInt32(i % 4))) & 0xFF) }
@@ -93,8 +118,8 @@ final class MixerModel: ObservableObject {
     private func pollClockStatus() {
         io.async {
             var st: UInt32 = 0, rate: UInt32 = 0
-            let r1 = fs_read_abs(Reg.diceGlobal + 0x54, &st)
-            let r2 = fs_read_abs(Reg.diceGlobal + 0x5C, &rate)
+            let r1 = fs_read_abs(self.unit, Reg.diceGlobal + 0x54, &st)
+            let r2 = fs_read_abs(self.unit, Reg.diceGlobal + 0x5C, &rate)
             guard r1 == 0, r2 == 0 else { return }
             DispatchQueue.main.async {
                 let locked = st & 1 == 1
@@ -126,7 +151,7 @@ final class MixerModel: ObservableObject {
         flushScheduled = false
         let batch = pending; pending.removeAll()
         for (off, v) in batch.sorted(by: { $0.key < $1.key }) {
-            let r = fs_write(off, v)
+            let r = fs_write(self.unit, off, v)
             if r != 0 { DispatchQueue.main.async { self.lost(r) }; return }
         }
     }
@@ -301,11 +326,36 @@ enum Backup {
         return base.appendingPathComponent("FireStudioMixer", isDirectory: true)
     }
 
+    /// GUID of the connected unit: backups and presets are stored per unit.
+    static var unit: UInt64? {
+        didSet { if let g = unit { adoptLegacyFolders(for: g) } }
+    }
+
+    /// ~/Library/Application Support/FireStudioMixer/Units/<GUID>
+    static func unitFolder(_ guid: UInt64) -> URL {
+        appSupport.appendingPathComponent("Units", isDirectory: true)
+            .appendingPathComponent(String(format: "%016llX", guid), isDirectory: true)
+    }
+
     static var folder: URL {
-        let url = appSupport.appendingPathComponent("Backups", isDirectory: true)
-        migrate(from: appSupport.appendingPathComponent("Sauvegardes", isDirectory: true), to: url)
+        let base = unit.map(unitFolder) ?? appSupport
+        let url = base.appendingPathComponent("Backups", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }
+
+    /// Versions up to 1.1 kept one Backups and one Presets folder for the single unit they supported.
+    /// They are moved, once, into the folder of the first unit that connects (never overwriting anything).
+    private static func adoptLegacyFolders(for guid: UInt64) {
+        let fm = FileManager.default
+        let dest = unitFolder(guid)
+        try? fm.createDirectory(at: dest, withIntermediateDirectories: true)
+        migrate(from: appSupport.appendingPathComponent("Sauvegardes", isDirectory: true),
+                to: appSupport.appendingPathComponent("Backups", isDirectory: true))
+        for name in ["Backups", "Presets"] {
+            migrate(from: appSupport.appendingPathComponent(name, isDirectory: true),
+                    to: dest.appendingPathComponent(name, isDirectory: true))
+        }
     }
 
     /// Renames a folder created by the first (French-only) versions, without ever overwriting anything.

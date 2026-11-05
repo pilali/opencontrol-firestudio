@@ -78,8 +78,57 @@ of the DICE space): `+0x54` STATUS, bit 0 = locked, bits 8–15 = nominal rate i
 `+0x58` EXT_STATUS reads `0xC0` on internal clock (the two receive streams from the Mac). While unlocked the
 DICE stops the streams (ENABLE = 0) and the interface is silent.
 
-The driver also has `SetClock` (4), `SetSync` (5) and `SetMaster` (6). They concern several DICE devices on
-the same FireWire bus and are not used by OpenControl.
+## Several units on the bus (static analysis, not tested yet)
+
+The driver aggregates up to **5** DICE devices of the same family found on the FireWire bus into **one**
+Core Audio device: their channels are concatenated, one unit is the clock master and the others follow it
+over FireWire. Everything below comes from the disassembly of `PaeFireStudio.kext` 4.2.1; it has only been
+observed with a single unit.
+
+### `GetConfigInfo` (selector 3, 0xEE8-byte struct out, `BUS_CONFIG`)
+
+| Offset | Content |
+|---|---|
+| `+0x000` | `uint64` GUID of the clock master |
+| `+0x00C` | current clock source (DICE index, `0x0C` = internal) |
+| `+0x010` | current rate index (2 = 48 kHz) |
+| `+0x014` | supported rates mask (`0x1E` = 44.1 / 48 / 88.2 / 96 kHz) |
+| `+0x018` | supported clock sources mask (`0x10FF` = sources 0–7 and 12) |
+| `+0x020` | 13 clock source names × 0x100 bytes |
+| `+0xD20` | 5 device entries × 0x58 bytes (see below); unused entries have GUID `0xFFFF…` and slot `0xFFFFFFFF` |
+| `+0xED8` | number of devices |
+| `+0xEDC` | total input channels (26 per FireStudio) |
+| `+0xEE0` | total output channels |
+
+Device entry (0x58 bytes): `+0x00` `uint64` GUID, `+0x08` nickname (64 bytes, NUL-terminated),
+`+0x48` state (1 with one unit online), `+0x4C` driver slot index (0–4), `+0x50` unknown (1).
+
+Devices excluded with `SetDeviceState` are not listed.
+
+### Setters
+
+| Selector | Method | Input | Effect |
+|---|---|---|---|
+| 5 | SetSync | `uint32` DICE clock source index | clock source of the master (rejected if not in the supported mask); restarts streaming. Same effect as the Core Audio clock source. |
+| 6 | SetMaster | `uint64` GUID | requests that unit as clock master; applied at the next streaming restart (triggered immediately) |
+| 17 | SetNickName | 0x200 bytes: `+0x000` `uint32` slot index (0–4), `+0x1C0` name (64 bytes) | renames the unit (stored in the nickname table, persisted); returns `+0x04` slot and `+0x08` the updated device info |
+| 19 | SetDeviceState | 8 bytes: `uint32` state, `uint32` slot index | state 5 excludes the unit from the aggregate (its GUID goes to the disabled table, 32 entries); any other value re-enables it |
+| 10 | GetNicknameTable | — | 0x900 bytes: 32 entries × 0x48 (`uint64` GUID + 64-byte name) |
+| 11 | GetDisabledDevicesTable | — | 0x100 bytes: 32 `uint64` GUIDs |
+
+`SetClock` (4) takes a `uint32` too and is not documented here yet.
+
+### Persisted settings (`DRIVER_RESTORE_SETTINGS`, 0xA18 bytes)
+
+| Offset | Content |
+|---|---|
+| `+0x000` | interface version `0x1007` |
+| `+0x004` | operation mode |
+| `+0x008` | `uint64` GUID of the clock master in use |
+| `+0x010` | clock source (DICE index) |
+| `+0x014` | rate index |
+| `+0x018` | nickname table (0x900 bytes, as `GetNicknameTable`) |
+| `+0x918` | disabled devices table (0x100 bytes, as `GetDisabledDevicesTable`) |
 
 ## Persistence
 
@@ -88,8 +137,7 @@ the same FireWire bus and are not used by OpenControl.
 
 - file `/Library/Preferences/PaeFireStudio.startup`;
 - header: the ASCII string `PaeFireStudio%08lx` with the interface version (`PaeFireStudio00000007`), NUL-terminated (22 bytes);
-- then the 0xA18-byte `DRIVER_RESTORE_SETTINGS` structure, little-endian: `+0x0` interface version (`0x1007`),
-  `+0x4` operation mode, `+0x8` device GUID (64 bits), followed by other driver fields.
+- then the 0xA18-byte `DRIVER_RESTORE_SETTINGS` structure, little-endian (layout above).
 
 OpenControl never writes this file: it calls `SetOpMode` and lets the daemon save the result.
 
