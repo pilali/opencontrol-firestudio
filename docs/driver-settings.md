@@ -94,6 +94,13 @@ OpenControl lists the units in *Settings → Units* (shown when more than one un
 GUID, clock role and lock state of each unit, a button to make a unit the clock master (`SetMaster`, after a
 confirmation) and renaming (`SetNickName`). The unit shown in the mixer is chosen in the window header.
 
+Both were tested with two units: `SetNickName` renames the unit at once, and `SetMaster` causes a short audio gap
+before playback resumes, the other unit then following the new master. The PreSonus daemon saves the names and
+the master GUID in `PaeFireStudio.startup`, so the chosen master stays the preferred one: when the master is
+powered off the remaining unit takes over on its internal clock, and the preferred master gets its role back
+as soon as it reappears on the bus. Units take driver slots, and therefore Core Audio channel ranges (1–26,
+27–52…), in the order the driver finds them.
+
 ### `GetConfigInfo` (selector 3, 0xEE8-byte struct out, `BUS_CONFIG`)
 
 | Offset | Content |

@@ -43,6 +43,7 @@ removed. It therefore does not run on macOS 26, nor on top of ASFireWire (see be
 | | |
 |---|---|
 | Interface | FireStudio 26x26 (model `0x08`, DICE firmware 1.0.4.0) |
+| Several units | two FireStudio 26x26 daisy-chained (one 52×52 audio device) |
 | Mac | Intel, macOS 12.7.6, Thunderbolt → FireWire adapter |
 | Drivers | PreSonus FireWire 4.2.1 (from Universal Control 3.4.2) |
 
