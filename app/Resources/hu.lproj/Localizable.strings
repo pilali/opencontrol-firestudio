@@ -80,3 +80,14 @@
 "Reset" = "Nullázás";
 "Playback %d · recording %d · timing %d" = "Lejátszás %d · felvétel %d · időzítés %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Az illesztőprogram által a FireWire hangfolyamban számolt kiesések. Nullázza, játssza le a projektet, majd ellenőrizze: ha a számláló 0 marad, nem az interfész a hiba oka.";
+"Unit shown in the mixer" = "A keverőben megjelenített egység";
+"Units" = "Egységek";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "A PreSonus-illesztőprogram az egységeket egyetlen hangeszközzé egyesíti, az összes csatornájukkal. Az egyik egység az órajel-mester: a fenti órajelforrás rá vonatkozik, a többi FireWire-en keresztül követi. Minden egységnek saját keverője, előbeállításai és mentései vannak.";
+"Make %@ the clock master?" = "Legyen %@ az órajel-mester?";
+"The audio stream stops for about a second while the driver restarts it." = "A hangfolyam körülbelül egy másodpercre megszakad, amíg az illesztőprogram újraindítja.";
+"Make clock master" = "Legyen órajel-mester";
+"Shown in the mixer" = "A keverőben látható";
+"Show in the mixer" = "Megjelenítés a keverőben";
+"Clock master (%@)" = "Órajel-mester (%@)";
+"Follows the clock master" = "Követi az órajel-mestert";
+"Not in the audio device" = "Nincs a hangeszközben";

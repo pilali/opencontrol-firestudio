@@ -80,3 +80,14 @@
 "Reset" = "Nollaa";
 "Playback %d · recording %d · timing %d" = "Toisto %d · tallennus %d · ajoitus %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Ajurin laskemat katkokset FireWire-äänivirrassa. Nollaa, toista projekti ja tarkista: jos laskuri pysyy nollassa, liitäntä ei ole syy.";
+"Unit shown in the mixer" = "Mikserissä näytettävä yksikkö";
+"Units" = "Yksiköt";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "PreSonus-ajuri yhdistää yksiköt yhdeksi äänilaitteeksi, jossa on kaikkien kanavat. Yksi yksikkö on kellomaster: yllä oleva kellolähde koskee sitä, ja muut seuraavat sitä FireWiren kautta. Jokaisella yksiköllä on oma mikseri, omat esiasetukset ja varmuuskopiot.";
+"Make %@ the clock master?" = "Tehdäänkö %@ kellomasteriksi?";
+"The audio stream stops for about a second while the driver restarts it." = "Äänivirta katkeaa noin sekunniksi, kun ajuri käynnistää sen uudelleen.";
+"Make clock master" = "Tee kellomasteriksi";
+"Shown in the mixer" = "Näytetään mikserissä";
+"Show in the mixer" = "Näytä mikserissä";
+"Clock master (%@)" = "Kellomaster (%@)";
+"Follows the clock master" = "Seuraa kellomasteria";
+"Not in the audio device" = "Ei äänilaitteessa";

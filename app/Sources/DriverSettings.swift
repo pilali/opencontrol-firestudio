@@ -61,6 +61,62 @@ enum DriverSettings {
         _ = withConnection { c in IOConnectCallStructMethod(c, 13, nil, 0, nil, nil) }
     }
 
+    // MARK: Several units (one aggregated Core Audio device)
+
+    /// Selector 3 (GetConfigInfo, 0xEE8 bytes): clock master and the units the driver aggregates.
+    static func busConfig() -> BusConfig? {
+        withConnection { c in
+            var b = [UInt8](repeating: 0, count: 0xEE8)
+            var size = b.count
+            guard IOConnectCallStructMethod(c, 3, nil, 0, &b, &size) == KERN_SUCCESS, size == 0xEE8 else { return nil }
+            func u32(_ o: Int) -> UInt32 { b[o..<o + 4].reversed().reduce(0) { $0 << 8 | UInt32($1) } }
+            func u64(_ o: Int) -> UInt64 { UInt64(u32(o)) | UInt64(u32(o + 4)) << 32 }
+            var devices: [BusDevice] = []
+            for i in 0..<5 {
+                let e = 0xD20 + i * 0x58
+                let g = u64(e)
+                guard g != ~0, g != 0 else { continue }
+                let raw = b[(e + 8)..<(e + 8 + 64)].prefix { $0 != 0 }
+                devices.append(BusDevice(guid: g, name: String(decoding: raw, as: UTF8.self),
+                                         slot: Int(u32(e + 0x4C)), state: Int(u32(e + 0x48))))
+            }
+            return BusConfig(master: u64(0), devices: devices)
+        }
+    }
+
+    /// Selector 6 (SetMaster, 8-byte struct): makes this unit the clock master. The driver restarts streaming.
+    @discardableResult
+    static func setMaster(_ guid: UInt64) -> Bool {
+        withConnection { c in
+            var g = guid
+            return IOConnectCallStructMethod(c, 6, &g, 8, nil, nil) == KERN_SUCCESS
+        } ?? false
+    }
+
+    static let maxNameBytes = 63
+
+    /// Selector 17 (SetNickName, 0x200-byte struct in and out): +0 driver slot, +0x1C0 name (64 bytes).
+    /// The driver keeps the name in its nickname table, saved by the PreSonus daemon.
+    @discardableResult
+    static func setNickname(slot: Int, _ name: String) -> Bool {
+        withConnection { c in
+            var b = [UInt8](repeating: 0, count: 0x200)
+            withUnsafeBytes(of: UInt32(slot).littleEndian) { b.replaceSubrange(0..<4, with: $0) }
+            let bytes = Array(trimmedName(name).utf8)
+            b.replaceSubrange(0x1C0..<(0x1C0 + bytes.count), with: bytes)
+            var out = [UInt8](repeating: 0, count: 0x200)
+            var size = out.count
+            return IOConnectCallStructMethod(c, 17, &b, b.count, &out, &size) == KERN_SUCCESS
+        } ?? false
+    }
+
+    /// Keeps whole characters within the 63 bytes the driver stores.
+    static func trimmedName(_ name: String) -> String {
+        var s = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        while s.utf8.count > maxNameBytes { s.removeLast() }
+        return s
+    }
+
     // MARK: Clock source (through Core Audio, like Audio MIDI Setup)
 
     /// Core Audio clock source items published by the driver. Items 3-6 are "Unused" and item 7 is a
@@ -115,6 +171,18 @@ enum DriverSettings {
         let rate = (prop("IOAudioSampleRate") as? [String: Any])?["IOAudioSampleRateWholeNumber"] as? Int ?? 0
         return (out, inp, rate)
     }
+}
+
+struct BusDevice: Equatable {
+    let guid: UInt64
+    let name: String
+    let slot: Int
+    let state: Int
+}
+
+struct BusConfig: Equatable {
+    let master: UInt64
+    let devices: [BusDevice]
 }
 
 struct ErrorCounts: Equatable {

@@ -80,3 +80,14 @@
 "Reset" = "Nullstill";
 "Playback %d · recording %d · timing %d" = "Avspilling %d · opptak %d · timing %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Utfall som driveren teller i FireWire-lydstrømmen. Nullstill, spill av prosjektet og sjekk: hvis telleren blir stående på 0, er ikke grensesnittet årsaken.";
+"Unit shown in the mixer" = "Enhet vist i mikseren";
+"Units" = "Enheter";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "PreSonus-driveren samler enhetene til én lydenhet med alle kanalene. Én enhet er klokkemaster: klokkekilden ovenfor gjelder for den, og de andre følger den via FireWire. Hver enhet har egen mikser, egne forhåndsinnstillinger og sikkerhetskopier.";
+"Make %@ the clock master?" = "Gjøre %@ til klokkemaster?";
+"The audio stream stops for about a second while the driver restarts it." = "Lydstrømmen stopper i omtrent ett sekund mens driveren starter den på nytt.";
+"Make clock master" = "Gjør til klokkemaster";
+"Shown in the mixer" = "Vist i mikseren";
+"Show in the mixer" = "Vis i mikseren";
+"Clock master (%@)" = "Klokkemaster (%@)";
+"Follows the clock master" = "Følger klokkemasteren";
+"Not in the audio device" = "Ikke i lydenheten";

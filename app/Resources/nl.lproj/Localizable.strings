@@ -80,3 +80,14 @@
 "Reset" = "Resetten";
 "Playback %d · recording %d · timing %d" = "Afspelen %d · opnemen %d · timing %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Haperingen die de driver telt in de FireWire-audiostream. Reset, speel het project af en controleer: blijft de teller op 0, dan ligt het niet aan de interface.";
+"Unit shown in the mixer" = "Apparaat getoond in de mixer";
+"Units" = "Apparaten";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "De PreSonus-driver voegt de apparaten samen tot één audioapparaat met al hun kanalen. Eén apparaat is de klokmaster: de klokbron hierboven geldt daarvoor, de andere volgen het via FireWire. Elk apparaat heeft een eigen mixer, presets en back-ups.";
+"Make %@ the clock master?" = "%@ klokmaster maken?";
+"The audio stream stops for about a second while the driver restarts it." = "De audiostream valt ongeveer een seconde weg terwijl de driver hem herstart.";
+"Make clock master" = "Klokmaster maken";
+"Shown in the mixer" = "Getoond in de mixer";
+"Show in the mixer" = "Tonen in de mixer";
+"Clock master (%@)" = "Klokmaster (%@)";
+"Follows the clock master" = "Volgt de klokmaster";
+"Not in the audio device" = "Niet in het audioapparaat";

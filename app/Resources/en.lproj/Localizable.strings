@@ -80,3 +80,14 @@
 "Reset" = "Reset";
 "Playback %d · recording %d · timing %d" = "Playback %d · recording %d · timing %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause.";
+"Unit shown in the mixer" = "Unit shown in the mixer";
+"Units" = "Units";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups.";
+"Make %@ the clock master?" = "Make %@ the clock master?";
+"The audio stream stops for about a second while the driver restarts it." = "The audio stream stops for about a second while the driver restarts it.";
+"Make clock master" = "Make clock master";
+"Shown in the mixer" = "Shown in the mixer";
+"Show in the mixer" = "Show in the mixer";
+"Clock master (%@)" = "Clock master (%@)";
+"Follows the clock master" = "Follows the clock master";
+"Not in the audio device" = "Not in the audio device";

@@ -19,6 +19,7 @@ zero-latency monitoring, output routing and headphone feeds. OpenControl fills t
 - Scroll wheel for fine steps (±0.375 dB, ⇧ ×8), ⌥-drag for fine adjustment, double-click to reset to 0 dB / center
 - **Driver operation mode**: the latency / robustness setting Universal Control used to offer (see [docs/driver-settings.md](docs/driver-settings.md))
 - **Standalone use**: settings are stored in the interface itself and keep working without a computer
+- **Several units** daisy-chained on one bus: choose the unit shown in the mixer, rename the units, choose the clock master (see [docs/driver-settings.md](docs/driver-settings.md#several-units-on-the-bus))
 
 ## Standalone use
 
@@ -102,8 +103,7 @@ The app talks directly to the DICE chip of the interface through asynchronous Fi
 FireWire access is exclusive: quit the app before using the probe tools.
 
 Backups and presets are stored per unit, under
-`~/Library/Application Support/FireStudioMixer/Units/<GUID>/`. Support for several units on the same bus is
-in preparation: the driver side is documented in [docs/driver-settings.md](docs/driver-settings.md).
+`~/Library/Application Support/FireStudioMixer/Units/<GUID>/`.
 
 ## Disclaimer
 

@@ -80,3 +80,14 @@
 "Reset" = "Resetare";
 "Playback %d · recording %d · timing %d" = "Redare %d · înregistrare %d · sincronizare %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Întreruperi numărate de driver în fluxul audio FireWire. Resetați, redați proiectul, apoi verificați: dacă numărătorul rămâne la 0, interfața nu este cauza.";
+"Unit shown in the mixer" = "Unitatea afișată în mixer";
+"Units" = "Unități";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "Driverul PreSonus reunește unitățile într-un singur dispozitiv audio cu toate canalele lor. O unitate este master de ceas: sursa de ceas de mai sus se aplică ei, iar celelalte o urmează prin FireWire. Fiecare unitate are propriul mixer, propriile presetări și copii de siguranță.";
+"Make %@ the clock master?" = "Faceți din %@ masterul de ceas?";
+"The audio stream stops for about a second while the driver restarts it." = "Fluxul audio se întrerupe aproximativ o secundă, cât timp driverul îl repornește.";
+"Make clock master" = "Fă master de ceas";
+"Shown in the mixer" = "Afișată în mixer";
+"Show in the mixer" = "Afișează în mixer";
+"Clock master (%@)" = "Master de ceas (%@)";
+"Follows the clock master" = "Urmează masterul de ceas";
+"Not in the audio device" = "În afara dispozitivului audio";

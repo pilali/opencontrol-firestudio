@@ -80,3 +80,14 @@
 "Reset" = "Vynulovat";
 "Playback %d · recording %d · timing %d" = "Přehrávání %d · nahrávání %d · časování %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Výpadky zaznamenané ovladačem ve zvukovém streamu FireWire. Vynulujte, přehrajte projekt a zkontrolujte: pokud čítač zůstane na 0, příčinou není rozhraní.";
+"Unit shown in the mixer" = "Jednotka zobrazená v mixu";
+"Units" = "Jednotky";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "Ovladač PreSonus spojuje jednotky do jednoho zvukového zařízení se všemi jejich kanály. Jedna jednotka je hlavní hodiny (master): výše uvedený zdroj hodin platí pro ni a ostatní se k ní synchronizují přes FireWire. Každá jednotka má vlastní mix, předvolby a zálohy.";
+"Make %@ the clock master?" = "Nastavit %@ jako hlavní hodiny?";
+"The audio stream stops for about a second while the driver restarts it." = "Zvukový proud se asi na sekundu přeruší, než ho ovladač znovu spustí.";
+"Make clock master" = "Nastavit jako hlavní hodiny";
+"Shown in the mixer" = "Zobrazena v mixu";
+"Show in the mixer" = "Zobrazit v mixu";
+"Clock master (%@)" = "Hlavní hodiny (%@)";
+"Follows the clock master" = "Řídí se hlavními hodinami";
+"Not in the audio device" = "Mimo zvukové zařízení";

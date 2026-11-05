@@ -80,3 +80,14 @@
 "Reset" = "Wyzeruj";
 "Playback %d · recording %d · timing %d" = "Odtwarzanie %d · nagrywanie %d · taktowanie %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Przerwy zliczone przez sterownik w strumieniu audio FireWire. Wyzeruj, odtwórz projekt i sprawdź: jeśli licznik pozostanie na 0, przyczyną nie jest interfejs.";
+"Unit shown in the mixer" = "Urządzenie wyświetlane w mikserze";
+"Units" = "Urządzenia";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "Sterownik PreSonus łączy urządzenia w jedno urządzenie audio ze wszystkimi ich kanałami. Jedno urządzenie jest głównym zegarem: powyższe źródło zegara dotyczy jego, a pozostałe synchronizują się z nim przez FireWire. Każde urządzenie ma własny mikser, presety i kopie zapasowe.";
+"Make %@ the clock master?" = "Ustawić %@ jako główny zegar?";
+"The audio stream stops for about a second while the driver restarts it." = "Strumień audio zostanie przerwany na około sekundę, gdy sterownik go uruchomi ponownie.";
+"Make clock master" = "Ustaw jako główny zegar";
+"Shown in the mixer" = "Wyświetlane w mikserze";
+"Show in the mixer" = "Pokaż w mikserze";
+"Clock master (%@)" = "Główny zegar (%@)";
+"Follows the clock master" = "Synchronizuje się z głównym zegarem";
+"Not in the audio device" = "Poza urządzeniem audio";

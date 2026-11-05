@@ -78,12 +78,21 @@ of the DICE space): `+0x54` STATUS, bit 0 = locked, bits 8–15 = nominal rate i
 `+0x58` EXT_STATUS reads `0xC0` on internal clock (the two receive streams from the Mac). While unlocked the
 DICE stops the streams (ENABLE = 0) and the interface is silent.
 
-## Several units on the bus (static analysis, not tested yet)
+## Several units on the bus
 
 The driver aggregates up to **5** DICE devices of the same family found on the FireWire bus into **one**
 Core Audio device: their channels are concatenated, one unit is the clock master and the others follow it
-over FireWire. Everything below comes from the disassembly of `PaeFireStudio.kext` 4.2.1; it has only been
-observed with a single unit.
+over FireWire. The layouts below come from the disassembly of `PaeFireStudio.kext` 4.2.1.
+
+Observed with two FireStudio 26x26 units (firmware 1.0.4.0) daisy-chained on one bus: one Core Audio device
+with 52 inputs and 52 outputs, slots 0 and 1, both nicknamed `FIRESTUDIO` by default. The master runs on its
+selected clock (DICE `CLOCK_SELECT` source `0x0C`, internal); the other unit is set to source `0x08` (ARX1,
+the isochronous stream received from the Mac) and reports itself locked. The DICE global `+0x64` register
+reads `0x01000400` on both units: firmware 1.0.4.0.
+
+OpenControl lists the units in *Settings → Units* (shown when more than one unit is present): driver nickname,
+GUID, clock role and lock state of each unit, a button to make a unit the clock master (`SetMaster`, after a
+confirmation) and renaming (`SetNickName`). The unit shown in the mixer is chosen in the window header.
 
 ### `GetConfigInfo` (selector 3, 0xEE8-byte struct out, `BUS_CONFIG`)
 
@@ -110,8 +119,8 @@ Devices excluded with `SetDeviceState` are not listed.
 | Selector | Method | Input | Effect |
 |---|---|---|---|
 | 5 | SetSync | `uint32` DICE clock source index | clock source of the master (rejected if not in the supported mask); restarts streaming. Same effect as the Core Audio clock source. |
-| 6 | SetMaster | `uint64` GUID | requests that unit as clock master; applied at the next streaming restart (triggered immediately) |
-| 17 | SetNickName | 0x200 bytes: `+0x000` `uint32` slot index (0–4), `+0x1C0` name (64 bytes) | renames the unit (stored in the nickname table, persisted); returns `+0x04` slot and `+0x08` the updated device info |
+| 6 | SetMaster | 8-byte struct: `uint64` GUID | requests that unit as clock master; applied at the next streaming restart (triggered immediately) |
+| 17 | SetNickName | 0x200-byte struct (in and out): `+0x000` `uint32` slot index (0–4), `+0x1C0` name (64 bytes) | renames the unit (stored in the nickname table, persisted); returns `+0x04` slot and `+0x08` the updated device info |
 | 19 | SetDeviceState | 8 bytes: `uint32` state, `uint32` slot index | state 5 excludes the unit from the aggregate (its GUID goes to the disabled table, 32 entries); any other value re-enables it |
 | 10 | GetNicknameTable | — | 0x900 bytes: 32 entries × 0x48 (`uint64` GUID + 64-byte name) |
 | 11 | GetDisabledDevicesTable | — | 0x100 bytes: 32 `uint64` GUIDs |

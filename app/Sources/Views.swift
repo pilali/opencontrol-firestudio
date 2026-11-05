@@ -315,6 +315,7 @@ struct SettingsPage: View {
                 }.fixedSize(horizontal: true, vertical: false)
                 DriverBox(driver: driver)
                 }.fixedSize(horizontal: false, vertical: true)
+                if m.unitInfo.count > 1 { UnitsBox() }
                 GroupBox(L("Backups")) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("A full copy of the device state is saved on every connection."))
@@ -371,7 +372,16 @@ struct ContentView: View {
             HStack {
                 Circle().fill(m.connected ? Theme.playback : Theme.master).frame(width: 8, height: 8)
                     .shadow(color: (m.connected ? Theme.playback : Theme.master).opacity(0.8), radius: 3)
-                Text(verbatim: "FIRESTUDIO").font(.system(size: 12, weight: .heavy)).kerning(2).foregroundColor(Theme.text)
+                if m.units.count > 1, let g = m.guid {
+                    Picker("", selection: Binding(get: { g }, set: { m.select(unit: $0) })) {
+                        ForEach(m.units, id: \.self) { u in Text(verbatim: m.unitName(u)).tag(u) }
+                    }
+                    .labelsHidden().frame(width: 200)
+                    .help(L("Unit shown in the mixer"))
+                } else {
+                    Text(verbatim: m.unitName(m.guid).uppercased())
+                        .font(.system(size: 12, weight: .heavy)).kerning(2).foregroundColor(Theme.text)
+                }
                 Text(verbatim: m.connected ? "26x26 · \(m.sampleRate / 1000) kHz" : m.status)
                     .font(.system(size: 11)).foregroundColor(Theme.dim)
                 Spacer()
@@ -511,5 +521,78 @@ struct DriverBox: View {
 
     static func ms(_ samples: Int, _ rate: Int) -> String {
         String(format: "%.1f", locale: Locale.current, Double(samples) * 1000 / Double(rate))
+    }
+}
+
+/// Several units on the bus: names, clock master, clock status, and which one the mixer shows.
+struct UnitsBox: View {
+    @EnvironmentObject var m: MixerModel
+    @State private var editing: UInt64?
+    @State private var draft = ""
+    @State private var confirmMaster: UInt64?
+
+    var body: some View {
+        GroupBox(L("Units")) {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(m.unitInfo) { row($0) }
+                Text(L("The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups."))
+                    .font(.caption).foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }.padding(6).frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .alert(isPresented: Binding(get: { confirmMaster != nil }, set: { if !$0 { confirmMaster = nil } })) {
+            Alert(title: Text(L("Make %@ the clock master?", m.unitName(confirmMaster))),
+                  message: Text(L("The audio stream stops for about a second while the driver restarts it.")),
+                  primaryButton: .default(Text(L("Make clock master"))) {
+                      if let g = confirmMaster { m.makeClockMaster(g) }
+                  },
+                  secondaryButton: .cancel())
+        }
+    }
+
+    func row(_ u: UnitInfo) -> some View {
+        HStack(spacing: 10) {
+            Circle().fill(u.locked == true ? Color.green : (u.locked == false ? Color.red : Color.gray))
+                .frame(width: 8, height: 8)
+                .help(u.locked == true ? L("Locked") : L("Not locked"))
+            if editing == u.guid {
+                TextField("", text: $draft, onCommit: {
+                    let name = DriverSettings.trimmedName(draft)
+                    if !name.isEmpty { m.rename(u.guid, name) }
+                    editing = nil
+                })
+                .frame(width: 180)
+                Button(L("Cancel")) { editing = nil }
+            } else {
+                Text(verbatim: m.unitName(u.guid)).font(.callout.weight(.semibold)).frame(minWidth: 140, alignment: .leading)
+                Button(L("Rename…")) { draft = u.name ?? ""; editing = u.guid }.disabled(u.slot == nil)
+            }
+            Text(verbatim: String(format: "%016llX", u.guid)).font(.caption.monospaced()).foregroundColor(.secondary)
+            Text(verbatim: clockText(u)).font(.caption)
+            Spacer()
+            if m.clockMaster != u.guid {
+                Button(L("Make clock master")) { confirmMaster = u.guid }.disabled(u.slot == nil)
+            }
+            if m.guid == u.guid {
+                Text(L("Shown in the mixer")).font(.caption).foregroundColor(.secondary).frame(minWidth: 120)
+            } else {
+                Button(L("Show in the mixer")) { m.select(unit: u.guid) }.frame(minWidth: 120)
+            }
+        }
+    }
+
+    func clockText(_ u: UnitInfo) -> String {
+        if m.clockMaster == u.guid {
+            let src: String
+            switch u.clockSelect {
+            case 0x00: src = "S/PDIF"
+            case 0x01: src = "ADAT"
+            case 0x02: src = "Word Clock"
+            case 0x0C: src = L("Internal")
+            default: src = "?"
+            }
+            return L("Clock master (%@)", src)
+        }
+        return u.clockSelect == 0x08 ? L("Follows the clock master") : L("Not in the audio device")
     }
 }

@@ -1,6 +1,18 @@
 import Foundation
 import Combine
 
+/// One FireStudio on the bus, as seen by the app.
+struct UnitInfo: Identifiable, Equatable {
+    let guid: UInt64
+    /// Nickname in the PreSonus driver, and the driver slot it is renamed through.
+    var name: String?
+    var slot: Int?
+    /// DICE CLOCK_SELECT source (0x0C internal, 0x08 FireWire stream from the master, 0-2 S/PDIF, ADAT, word clock).
+    var clockSelect: UInt32?
+    var locked: Bool?
+    var id: UInt64 { guid }
+}
+
 /// Local image of the mixer area + communication with the device.
 final class MixerModel: ObservableObject {
     @Published private(set) var connected = false
@@ -15,6 +27,12 @@ final class MixerModel: ObservableObject {
     @Published private(set) var units: [UInt64] = []
     /// Open unit; only touched on the `io` queue.
     private var unit: OpaquePointer?
+    /// The other units, kept open to read their clock status; only touched on the `io` queue.
+    private var others: [UInt64: OpaquePointer] = [:]
+    /// Every unit on the bus, with its driver nickname and clock status (refreshed about once per second).
+    @Published private(set) var unitInfo: [UnitInfo] = []
+    /// GUID of the unit the driver uses as clock master.
+    @Published private(set) var clockMaster: UInt64?
     private static let unitKey = "unitGUID"
     /// DICE global STATUS bit 0: the interface is locked to the selected clock source.
     @Published private(set) var clockLocked: Bool?
@@ -43,12 +61,12 @@ final class MixerModel: ObservableObject {
 
     func connect() {
         io.async {
-            var list = [UInt64](repeating: 0, count: 8)
-            let found = Array(list.prefix(Int(min(fs_list(&list, 8), 8))))
+            let found = MixerModel.listUnits()
             let preferred = UInt64(UserDefaults.standard.string(forKey: MixerModel.unitKey) ?? "", radix: 16) ?? 0
             let target = found.contains(preferred) ? preferred : (found.first ?? 0)
             var err: Int32 = 0
-            guard let u = fs_open(target, &err) else {
+            // A unit already open for its clock status is reused (access is exclusive, even within the app).
+            guard let u = self.others.removeValue(forKey: target) ?? fs_open(target, &err) else {
                 let msg = err == -4 ? L("FireStudio in use by another program (exclusive access)")
                                     : L("FireStudio not found (check the cable or adapter)")
                 DispatchQueue.main.async { self.status = msg; self.units = found }
@@ -71,8 +89,16 @@ final class MixerModel: ObservableObject {
                 self.connected = true
                 self.status = L("Connected")
                 self.lastBackup = Backup.save(buf)
+                self.pollUnits()
             }
         }
+    }
+
+    /// GUIDs of the FireStudio units on the bus (fs_list must fill the buffer before it is read).
+    private static func listUnits() -> [UInt64] {
+        var list = [UInt64](repeating: 0, count: 8)
+        let n = Int(min(fs_list(&list, 8), 8))
+        return Array(list.prefix(n))
     }
 
     /// Switches to another unit (remembered for the next launches).
@@ -81,7 +107,10 @@ final class MixerModel: ObservableObject {
         UserDefaults.standard.set(String(g, radix: 16), forKey: MixerModel.unitKey)
         connected = false
         status = L("Searching for the FireStudio…")
-        io.async { fs_close(self.unit); self.unit = nil }
+        io.async {
+            if let u = self.unit { self.others[fs_guid(u)] = u }
+            self.unit = nil
+        }
         connect()
     }
 
@@ -103,7 +132,7 @@ final class MixerModel: ObservableObject {
         guard connected, !meterBusy else { return }   // never pile up requests if the bus is slow
         meterBusy = true
         statusTick += 1
-        if statusTick >= 12 { statusTick = 0; pollClockStatus() }
+        if statusTick >= 12 { statusTick = 0; pollUnits() }
         io.async {
             var q = [UInt32](repeating: 0, count: Int(Reg.meterQuadlets))
             let r = fs_read(self.unit, Reg.metersBase, &q, Reg.meterQuadlets)
@@ -114,18 +143,77 @@ final class MixerModel: ObservableObject {
         }
     }
 
-    /// Reads the DICE global STATUS and SAMPLE_RATE registers (about once per second).
-    private func pollClockStatus() {
+    /// About once per second: lists the units, reads the DICE global CLOCK_SELECT, STATUS and SAMPLE_RATE
+    /// registers of each one, and the nicknames and clock master known to the PreSonus driver.
+    private func pollUnits() {
         io.async {
-            var st: UInt32 = 0, rate: UInt32 = 0
-            let r1 = fs_read_abs(self.unit, Reg.diceGlobal + 0x54, &st)
-            let r2 = fs_read_abs(self.unit, Reg.diceGlobal + 0x5C, &rate)
-            guard r1 == 0, r2 == 0 else { return }
-            DispatchQueue.main.async {
-                let locked = st & 1 == 1
-                if self.clockLocked != locked { self.clockLocked = locked }
-                if locked, rate > 0, self.sampleRate != Int(rate) { self.sampleRate = Int(rate) }
+            let found = MixerModel.listUnits()
+            for (g, h) in self.others where !found.contains(g) { fs_close(h); self.others[g] = nil }
+            let current = self.unit.map { fs_guid($0) }
+            var infos: [UnitInfo] = []
+            var rate: UInt32 = 0
+            for g in found {
+                var info = UnitInfo(guid: g)
+                var h = g == current ? self.unit : self.others[g]
+                if h == nil {
+                    var err: Int32 = 0
+                    h = fs_open(g, &err)
+                    if let h = h { self.others[g] = h }
+                }
+                if let h = h {
+                    var sel: UInt32 = 0, st: UInt32 = 0
+                    if fs_read_abs(h, Reg.diceGlobal + 0x4C, &sel) == 0, fs_read_abs(h, Reg.diceGlobal + 0x54, &st) == 0 {
+                        info.clockSelect = sel & 0xFF
+                        info.locked = st & 1 == 1
+                        if g == current { _ = fs_read_abs(h, Reg.diceGlobal + 0x5C, &rate) }
+                    } else if g != current {
+                        fs_close(h); self.others[g] = nil
+                    }
+                }
+                infos.append(info)
             }
+            let cfg = DriverSettings.busConfig()
+            for i in infos.indices {
+                if let d = cfg?.devices.first(where: { $0.guid == infos[i].guid }) {
+                    infos[i].name = d.name; infos[i].slot = d.slot
+                }
+            }
+            DispatchQueue.main.async {
+                if self.units != found { self.units = found }
+                if self.unitInfo != infos { self.unitInfo = infos }
+                if self.clockMaster != cfg?.master { self.clockMaster = cfg?.master }
+                let locked = infos.first { $0.guid == current }?.locked
+                if self.clockLocked != locked { self.clockLocked = locked }
+                if locked == true, rate > 0, self.sampleRate != Int(rate) { self.sampleRate = Int(rate) }
+            }
+        }
+    }
+
+    /// Name shown for a unit: its driver nickname, followed by the end of its GUID when several units share it.
+    func unitName(_ g: UInt64?) -> String {
+        func base(_ i: UnitInfo?) -> String {
+            let n = i?.name ?? ""
+            return n.isEmpty ? "FireStudio" : n
+        }
+        guard let g = g else { return "FireStudio" }
+        let b = base(unitInfo.first { $0.guid == g })
+        let shared = unitInfo.filter { base($0) == b }.count > 1
+        return shared ? b + String(format: " ·%04llX", g & 0xFFFF) : b
+    }
+
+    /// Asks the driver to use this unit as clock master (the audio stream restarts).
+    func makeClockMaster(_ g: UInt64) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            DriverSettings.setMaster(g)
+            DispatchQueue.main.async { self.pollUnits() }
+        }
+    }
+
+    func rename(_ g: UInt64, _ name: String) {
+        guard let slot = unitInfo.first(where: { $0.guid == g })?.slot else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            DriverSettings.setNickname(slot: slot, name)
+            DispatchQueue.main.async { self.pollUnits() }
         }
     }
 

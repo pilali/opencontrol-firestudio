@@ -80,3 +80,14 @@
 "Reset" = "Sıfırla";
 "Playback %d · recording %d · timing %d" = "Çalma %d · kayıt %d · zamanlama %d";
 "Dropouts counted by the driver on the FireWire audio stream. Reset, play the project, then check: if the counter stays at 0, the interface is not the cause." = "Sürücünün FireWire ses akışında saydığı kesintiler. Sıfırlayın, projeyi çalın, sonra kontrol edin: sayaç 0'da kalırsa sorun arabirimde değildir.";
+"Unit shown in the mixer" = "Mikserde gösterilen birim";
+"Units" = "Birimler";
+"The PreSonus driver combines the units into one audio device with all their channels. One unit is the clock master: the clock source above applies to it, and the others follow it over FireWire. Each unit has its own mixer, presets and backups." = "PreSonus sürücüsü birimleri tüm kanallarıyla tek bir ses aygıtında birleştirir. Bir birim saat ana birimidir: yukarıdaki saat kaynağı ona uygulanır, diğerleri onu FireWire üzerinden izler. Her birimin kendi mikseri, ön ayarları ve yedekleri vardır.";
+"Make %@ the clock master?" = "%@ saat ana birimi yapılsın mı?";
+"The audio stream stops for about a second while the driver restarts it." = "Sürücü ses akışını yeniden başlatırken akış yaklaşık bir saniye kesilir.";
+"Make clock master" = "Saat ana birimi yap";
+"Shown in the mixer" = "Mikserde gösteriliyor";
+"Show in the mixer" = "Mikserde göster";
+"Clock master (%@)" = "Saat ana birimi (%@)";
+"Follows the clock master" = "Saat ana birimini izliyor";
+"Not in the audio device" = "Ses aygıtında değil";
