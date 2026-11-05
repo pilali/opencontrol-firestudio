@@ -252,7 +252,26 @@ final class MixerModel: ObservableObject {
         var bytes: [UInt8] = []
         for q in regs[base..<base + 3] { for k in 0..<4 { bytes.append(UInt8((q >> (8 * UInt32(k))) & 0xFF)) } }
         let s = bytes.prefix { $0 != 0 }
-        return String(decoding: s, as: UTF8.self).trimmingCharacters(in: .whitespaces)
+        let text = String(decoding: s, as: UTF8.self).trimmingCharacters(in: .whitespaces)
+        // Units never set up by FireControl have empty (or erased, 0xFF) name fields.
+        let valid = !s.isEmpty && s.allSatisfy { (0x20...0x7E).contains($0) } && !text.isEmpty
+        return valid ? text : MixerModel.defaultName(index)
+    }
+
+    /// The names FireControl stores in the device, used when a field is empty.
+    static func defaultName(_ index: Int) -> String {
+        switch index {
+        case 0, 1: return "Mic/Inst \(index + 1)"
+        case 2..<8: return "Mic/Line \(index + 1)"
+        case 8..<16: return "ADAT \(index - 7)"
+        case 16: return "S/PDIF L"
+        case 17: return "S/PDIF R"
+        case 18..<28: return "Daw \(index - 17)"
+        case 28..<36: return "ADAT \(index - 19)"
+        case 36..<45: return "Mix \(index - 35)"
+        case 45..<53: return "Daw \(index - 34)"
+        default: return "?"
+        }
     }
     func inputName(_ ch: Int) -> String { name(ch) }
     func playbackName(_ ch: Int) -> String { name(18 + ch) }
