@@ -121,16 +121,16 @@ struct MixTabs: View {
     }
 }
 
-/// Enlarges the window once so that the two-row mixer fits without scrolling (within the screen).
-/// Done once per layout version: afterwards the size the user chooses is kept.
+/// Sizes the window to the two-row mixer: its natural size becomes the maximum content size (no empty
+/// margins), and the window is set to that size on the first launch of this layout or when it is larger.
+/// Smaller windows remain possible, the mixer then scrolls.
 enum WindowFitter {
     private static let key = "fittedLayout"
-    private static let layout = 2
+    private static let layout = 3
     private static var done = false
 
     static func fit(content: CGSize, viewport: CGSize, attempt: Int = 0) {
-        guard !done, content.width > 0, viewport.width > 0,
-              UserDefaults.standard.integer(forKey: key) < layout else { return }
+        guard !done, content.width > 0, viewport.width > 0 else { return }
         // At launch the window may not be on screen yet: retry a few times.
         guard let win = NSApp.windows.first(where: { $0.isVisible && $0.contentView != nil }),
               let screen = (win.screen ?? NSScreen.main)?.visibleFrame else {
@@ -140,14 +140,18 @@ enum WindowFitter {
             return
         }
         done = true
+        let current = win.contentRect(forFrameRect: win.frame).size
+        let chrome = win.frame.height - current.height
+        let target = NSSize(width: min(ceil(current.width + content.width - viewport.width) + 2, screen.width),
+                            height: min(ceil(current.height + content.height - viewport.height) + 2, screen.height - chrome))
+        win.contentMaxSize = target
+        let first = UserDefaults.standard.integer(forKey: key) < layout
         UserDefaults.standard.set(layout, forKey: key)
-        let dw = max(0, ceil(content.width - viewport.width)), dh = max(0, ceil(content.height - viewport.height))
-        guard dw > 0 || dh > 0 else { return }
-        var f = win.frame
-        f.size.width = min(f.width + dw + 4, screen.width)
-        f.size.height = min(f.height + dh + 4, screen.height)
+        guard first || current.width > target.width || current.height > target.height else { return }
+        let size = first ? target : NSSize(width: min(current.width, target.width), height: min(current.height, target.height))
+        var f = win.frameRect(forContentRect: NSRect(origin: .zero, size: size))
         f.origin.y = max(screen.minY, win.frame.maxY - f.height)        // keep the title bar in place
-        f.origin.x = min(max(screen.minX, f.origin.x), screen.maxX - f.width)
+        f.origin.x = min(max(screen.minX, win.frame.minX), screen.maxX - f.width)
         win.setFrame(f, display: true, animate: true)
     }
 }
