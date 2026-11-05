@@ -249,6 +249,7 @@ struct SettingsPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .top, spacing: 18) {
                 GroupBox(L("FireStudio settings")) {
                     VStack(alignment: .leading, spacing: 8) {
                         toggle(L("Terminate BNC (75 Ω word clock termination)"), Reg.bnct)
@@ -258,18 +259,20 @@ struct SettingsPage: View {
                         toggle(L("Mains active in surround mode (unchecked = mains muted)"), Reg.mtss)
                         Text(L("Sample rate: %d Hz (change it in Audio MIDI Setup)", m.sampleRate))
                             .font(.caption).foregroundColor(.secondary)
-                    }.padding(6)
-                }
+                    }.padding(6).frame(maxHeight: .infinity, alignment: .top)
+                }.fixedSize(horizontal: true, vertical: false)
                 GroupBox(L("Driver")) {
                     VStack(alignment: .leading, spacing: 8) {
                         if let mode = driver.mode {
+                            Text(L("Operation mode")).font(.callout.weight(.semibold))
                             Picker(L("Operation mode"), selection: Binding(get: { mode }, set: { driver.set($0) })) {
                                 Text(L("Lowest latency")).tag(0)
                                 Text(L("Normal (default)")).tag(1)
                                 Text(L("Safe")).tag(2)
                                 Text(L("Safest")).tag(3)
                             }
-                            .pickerStyle(.segmented)
+                            .pickerStyle(.radioGroup)
+                            .labelsHidden()
                             .disabled(driver.busy)
                             if let o = driver.offsets, o.rate > 0 {
                                 Text(L("Driver safety buffer at %d Hz: output %d, input %d samples (%@ ms in total).",
@@ -285,8 +288,9 @@ struct SettingsPage: View {
                             Text(L("PreSonus driver not loaded: operation mode unavailable."))
                                 .font(.caption).foregroundColor(.secondary)
                         }
-                    }.padding(6)
+                    }.padding(6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
+                }.fixedSize(horizontal: false, vertical: true)
                 GroupBox(L("Backups")) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("A full copy of the device state is saved on every connection."))
