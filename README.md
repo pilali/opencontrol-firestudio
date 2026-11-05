@@ -17,6 +17,19 @@ zero-latency monitoring, output routing and headphone feeds. OpenControl fills t
 - **6 presets** recalled with one click
 - **Automatic backup** of the full device state on every connection, with restore
 - Scroll wheel for fine steps (±0.375 dB, ⇧ ×8), ⌥-drag for fine adjustment, double-click to reset to 0 dB / center
+- **Standalone use**: settings are stored in the interface itself and keep working without a computer
+
+## Standalone use
+
+The FireStudio firmware stores its mixer settings itself: every change made in the app is kept by the
+interface and survives a power cycle. There is no separate "save to device" step.
+
+To use the FireStudio without a computer, set it up in the app, then quit the app and unplug the FireWire
+cable. The mixes, output routing, Main and headphone sources stay active: for example, Mix 1 → Out 1/2 to
+monitor the inputs on headphones or speakers. Without a computer, the DAW returns are silent and the
+interface runs on its internal clock (or the selected digital clock source).
+
+Verified on the tested setup: FireWire unplugged, interface power-cycled, an input heard on the headphones.
 
 ## Requirements
 
