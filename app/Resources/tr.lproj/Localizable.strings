@@ -45,7 +45,6 @@
 "Rename…" = "Yeniden adlandır…";
 "Replace with the current state" = "Geçerli durumla değiştir";
 "Restore a backup…" = "Yedeği geri yükle…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Örnekleme hızı: %d Hz (Ses MIDI Ayarları'ndan değiştirin)";
 "Save current state…" = "Geçerli durumu kaydet…";
 "Save failed" = "Kaydetme başarısız";
 "Saved: %@" = "Kaydedildi: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Daha yüksek bir mod gecikmeyi biraz artırır ancak çalmayı kesintilere ve cızırtılara karşı daha dayanıklı hale getirir. Değişiklik ses akışını kısa süreliğine yeniden başlatır; PreSonus sürücüsü ayarı hatırlar.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus sürücüsü yüklü değil: çalışma modu kullanılamıyor.";
 "Clock source" = "Saat kaynağı";
+"Sample rate" = "Örnekleme hızı";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Örnekleme hızını değiştirmek tüm birimlerde sesi kısa süreliğine keser. Arayüz harici bir saati izlediğinde, kaynak cihazın hızını seçin.";
 "Internal" = "Dahili";
 "Locked" = "Kilitli";
 "Not locked" = "Kilitli değil";

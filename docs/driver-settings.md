@@ -59,23 +59,55 @@ OpenControl shows their sum, polled every 2 s while the Settings page is open.
 ## Clock source
 
 The driver publishes the clock sources to Core Audio (`kAudioDevicePropertyClockSource`, device UID
-`PaeFireStudioAudioEngine:0`), the same setting as in Audio MIDI Setup. The names come from the device
-(DICE global `CLOCK_SOURCE_NAMES`: `SPDIF\ADAT\Word Clock\Unused\Unused\Unused\Unused\Internal`).
-Core Audio item *n* selects DICE source *n* for 0–7; item 8 selects the real internal clock (DICE `0x0C`).
-Measured mapping:
+`PaeFireStudioAudioEngine:0`), the same setting as in Audio MIDI Setup. Core Audio item *n* writes DICE
+source *n* to `CLOCK_SELECT` for 0–7; item 8 writes the internal clock (DICE `0x0C`).
 
-| Core Audio item | DICE `CLOCK_SELECT` | Source |
-|---|---|---|
-| 0 | `0x200` | S/PDIF |
-| 1 | `0x201` | ADAT |
-| 2 | `0x202` | Word Clock |
-| 3–6 | — | "Unused" |
-| 7 | `0x207` | duplicate "Internal" name, not the internal clock: not offered |
-| 8 | `0x20C` | Internal |
+**The names are wrong.** They come from the device (DICE global `CLOCK_SOURCE_NAMES`:
+`SPDIF\ADAT\Word Clock\Unused\Unused\Unused\Unused\Internal`) and are applied to items 0–7 in order,
+but the sources follow the standard DICE numbering (0–3 AES receivers 1–4, 5 ADAT, 7 word clock). Measured
+mapping:
+
+| Core Audio item | Driver name | DICE `CLOCK_SELECT` | Real source | Verified |
+|---|---|---|---|---|
+| 0 | S/PDIF | `0x200` | S/PDIF input (AES receiver 1) | FireControl's clock map; not tested |
+| 1 | ADAT | `0x201` | AES receiver 2, not wired on the FireStudio | never locks |
+| 2 | Word Clock | `0x202` | AES receiver 3, not wired on the FireStudio | never locks |
+| 3, 4, 6 | Unused | — | — | — |
+| 5 | Unused | `0x205` | **ADAT**, port chosen by mixer register `0x111C` | yes (ADAT 1) |
+| 7 | Internal | `0x207` | **Word clock** (BNC) | yes |
+| 8 | Internal | `0x20C` | internal clock | yes |
+
+FireControl 2626 confirms this mapping: its clock map (`Presonus::gClockMap` in `firestudiodevice.bundle`) is
+Internal → 12, BNC → 7, S/PDIF → 0, ADAT 1 → 5, ADAT 2 → 5. For ADAT, FireControl then writes the mixer
+register `0x111C` (`clks`): 0 for ADAT 1, 1 for ADAT 2, which selects the optical port the unit syncs to.
+
+OpenControl offers Internal (8), S/PDIF (0), ADAT 1 (5, `0x111C` = 0), ADAT 2 (5, `0x111C` = 1) and
+Word Clock (7). The register is written on the clock master. ADAT 2 has not been tested yet.
+
+How this was verified: a second FireStudio, standalone on its internal clock, sends ADAT (both optical ports)
+and word clock (BNC) to the unit under test, which runs alone on the bus at 48 kHz.
+
+- Items 1 and 2 never lock, at 44.1, 48, 88.2 or 96 kHz. With the ADAT signal present, EXT_STATUS shows ADAT
+  received (`0x10`) and ADAT slipping (`0x00100000`).
+- Item 7 locks, and the ADAT slip bit clears: the unit now runs at the rate of the other one. Unplugging the
+  BNC cable unlocks it and the slip comes back; plugging it in again locks it.
+- Item 5 locks with the BNC cable unplugged, with no ADAT slip.
+- On the internal clock (item 8), the ADAT signal of the other unit slips, as expected from two free-running
+  clocks.
+
+## Sample rate
+
+Set through Core Audio (`kAudioDevicePropertyNominalSampleRate`), like the clock source: 44.1, 48, 88.2 or
+96 kHz. The driver applies it to every unit of the bus and restarts streaming.
+
+A unit disconnected from the FireWire bus keeps its rate while it stays powered on, but the rate is not stored:
+after a power cycle without a computer it runs at 44.1 or 48 kHz (the LED blinks slowly while it looks for a
+clock, very fast at 96 kHz). The firmware stores the mixer area in flash, not the DICE clock settings.
 
 The lock state is read over FireWire in the DICE global section (`0xFFFFE0000028`, offset given by quadlet 0
 of the DICE space): `+0x54` STATUS, bit 0 = locked, bits 8–15 = nominal rate index; `+0x5C` SAMPLE_RATE in Hz.
-`+0x58` EXT_STATUS reads `0xC0` on internal clock (the two receive streams from the Mac). While unlocked the
+`+0x58` EXT_STATUS reads `0xC0` on internal clock (the two receive streams from the Mac); bit `0x10` = ADAT
+signal received, bit `0x00100000` = ADAT slip (the ADAT signal does not run at the unit's rate). While unlocked the
 DICE stops the streams (ENABLE = 0) and the interface is silent.
 
 ## Several units on the bus

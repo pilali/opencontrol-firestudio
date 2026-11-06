@@ -45,7 +45,6 @@
 "Rename…" = "Nimeä uudelleen…";
 "Replace with the current state" = "Korvaa nykyisellä tilalla";
 "Restore a backup…" = "Palauta varmuuskopio…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Näytteenottotaajuus: %d Hz (muuta Audio-MIDI-asetuksissa)";
 "Save current state…" = "Tallenna nykyinen tila…";
 "Save failed" = "Tallennus epäonnistui";
 "Saved: %@" = "Tallennettu: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Korkeampi tila lisää hieman viivettä mutta tekee toistosta kestävämmän katkoksia ja rätinää vastaan. Vaihto käynnistää äänivirran hetkeksi uudelleen; PreSonus-ajuri muistaa asetuksen.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-ajuria ei ole ladattu: toimintatila ei käytettävissä.";
 "Clock source" = "Kellolähde";
+"Sample rate" = "Näytteenottotaajuus";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Näytteenottotaajuuden vaihtaminen katkaisee äänen hetkeksi kaikissa laitteissa. Kun liitäntä seuraa ulkoista kelloa, valitse lähdelaitteen taajuus.";
 "Internal" = "Sisäinen";
 "Locked" = "Lukittu";
 "Not locked" = "Ei lukittu";

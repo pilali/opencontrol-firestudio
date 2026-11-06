@@ -45,7 +45,6 @@
 "Rename…" = "Zmień nazwę…";
 "Replace with the current state" = "Zastąp bieżącym stanem";
 "Restore a backup…" = "Przywróć kopię zapasową…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Częstotliwość próbkowania: %d Hz (zmień w Konfiguracji audio MIDI)";
 "Save current state…" = "Zapisz bieżący stan…";
 "Save failed" = "Nie udało się zapisać";
 "Saved: %@" = "Zapisano: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Wyższy tryb dodaje nieco opóźnienia, ale czyni odtwarzanie odporniejszym na przerwy i trzaski. Zmiana na chwilę restartuje strumień audio; sterownik PreSonus zapamiętuje ustawienie.";
 "PreSonus driver not loaded: operation mode unavailable." = "Sterownik PreSonus nie jest załadowany: tryb pracy niedostępny.";
 "Clock source" = "Źródło zegara";
+"Sample rate" = "Częstotliwość próbkowania";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Zmiana częstotliwości próbkowania na chwilę przerywa dźwięk na wszystkich urządzeniach. Gdy interfejs podąża za zewnętrznym zegarem, wybierz częstotliwość urządzenia źródłowego.";
 "Internal" = "Wewnętrzne";
 "Locked" = "Zsynchronizowano";
 "Not locked" = "Brak synchronizacji";

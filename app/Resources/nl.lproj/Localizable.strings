@@ -45,7 +45,6 @@
 "Rename…" = "Wijzig naam…";
 "Replace with the current state" = "Vervangen door huidige status";
 "Restore a backup…" = "Back-up terugzetten…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Samplefrequentie: %d Hz (wijzig dit in Audio/MIDI-configuratie)";
 "Save current state…" = "Huidige status opslaan…";
 "Save failed" = "Opslaan mislukt";
 "Saved: %@" = "Opgeslagen: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Een hogere modus voegt wat latentie toe maar maakt het afspelen beter bestand tegen haperingen en klikken. Wisselen herstart de audiostream kort; de PreSonus-driver onthoudt de instelling.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-driver niet geladen: bedrijfsmodus niet beschikbaar.";
 "Clock source" = "Klokbron";
+"Sample rate" = "Samplefrequentie";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Het wijzigen van de samplefrequentie onderbreekt kort het geluid op alle apparaten. Als de interface een externe klok volgt, kies dan de frequentie van het bronapparaat.";
 "Internal" = "Intern";
 "Locked" = "Vergrendeld";
 "Not locked" = "Niet vergrendeld";

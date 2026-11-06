@@ -7,8 +7,10 @@ struct UnitInfo: Identifiable, Equatable {
     /// Nickname in the PreSonus driver, and the driver slot it is renamed through.
     var name: String?
     var slot: Int?
-    /// DICE CLOCK_SELECT source (0x0C internal, 0x08 FireWire stream from the master, 0-2 S/PDIF, ADAT, word clock).
+    /// DICE CLOCK_SELECT source (0x0C internal, 0x08 FireWire stream from the master, 0x00 S/PDIF, 0x05 ADAT, 0x07 word clock).
     var clockSelect: UInt32?
+    /// Optical port the unit syncs to when its clock source is ADAT (mixer register 0x111C): 0 = ADAT 1, 1 = ADAT 2.
+    var adatPort: UInt32?
     var locked: Bool?
     var id: UInt64 { guid }
 }
@@ -168,6 +170,8 @@ final class MixerModel: ObservableObject {
                     if fs_read_abs(h, Reg.diceGlobal + 0x4C, &sel) == 0, fs_read_abs(h, Reg.diceGlobal + 0x54, &st) == 0 {
                         info.clockSelect = sel & 0xFF
                         info.locked = st & 1 == 1
+                        var port: UInt32 = 0
+                        if fs_read(h, Reg.clks, &port, 1) == 0 { info.adatPort = port }
                         if g == current { _ = fs_read_abs(h, Reg.diceGlobal + 0x5C, &rate) }
                     } else if g != current {
                         fs_close(h); self.others[g] = nil
@@ -212,6 +216,22 @@ final class MixerModel: ObservableObject {
     func makeClockMaster(_ g: UInt64) {
         DispatchQueue.global(qos: .userInitiated).async {
             DriverSettings.setMaster(g)
+            DispatchQueue.main.async { self.pollUnits() }
+        }
+    }
+
+    /// The clock master, or the open unit when the driver does not report one.
+    var clockMasterInfo: UnitInfo? {
+        unitInfo.first { $0.guid == (clockMaster ?? guid) }
+    }
+
+    /// Chooses the optical port the clock master syncs to when its clock source is ADAT, as FireControl did
+    /// (mixer register 0x111C, stored by the firmware like the other mixer settings).
+    func setADATClockPort(_ port: UInt32) {
+        guard let g = clockMaster ?? guid else { return }
+        if g == guid { set(Reg.clks, port); pollUnits(); return }
+        io.async {
+            if let h = self.others[g] { _ = fs_write(h, Reg.clks, port) }
             DispatchQueue.main.async { self.pollUnits() }
         }
     }

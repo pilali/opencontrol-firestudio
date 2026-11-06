@@ -45,7 +45,6 @@
 "Rename…" = "Átnevezés…";
 "Replace with the current state" = "Csere a jelenlegi állapotra";
 "Restore a backup…" = "Biztonsági mentés visszaállítása…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Mintavételi frekvencia: %d Hz (az Audio MIDI beállításban módosítható)";
 "Save current state…" = "Jelenlegi állapot mentése…";
 "Save failed" = "A mentés sikertelen";
 "Saved: %@" = "Mentve: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "A magasabb mód kissé növeli a késleltetést, de a lejátszás ellenállóbb lesz a kiesésekkel és recsegéssel szemben. A váltás röviden újraindítja a hangfolyamot; a PreSonus illesztőprogram megjegyzi a beállítást.";
 "PreSonus driver not loaded: operation mode unavailable." = "A PreSonus illesztőprogram nincs betöltve: az üzemmód nem érhető el.";
 "Clock source" = "Órajelforrás";
+"Sample rate" = "Mintavételi frekvencia";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "A mintavételi frekvencia módosítása rövid időre megszakítja a hangot minden egységen. Ha az interfész külső órajelet követ, a forráseszköz frekvenciáját válassza.";
 "Internal" = "Belső";
 "Locked" = "Szinkronban";
 "Not locked" = "Nincs szinkronban";

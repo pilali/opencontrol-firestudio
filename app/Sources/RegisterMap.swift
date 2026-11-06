@@ -45,7 +45,7 @@ enum Reg {
     // Hardware settings (FireControl DeviceControls)
     static let dcmt: UInt32 = 0x1114   // "Copy 1/2 to main L/R in surround mode"
     static let bnct: UInt32 = 0x1118   // "Terminate BNC" (word clock)
-    static let clks: UInt32 = 0x111C   // derived from the clock source (read only here)
+    static let clks: UInt32 = 0x111C   // ADAT port used as clock source: 0 = ADAT 1, 1 = ADAT 2
     static let tbdo: UInt32 = 0x1120   // "Talkback to Digital Outs"
     static let mtss: UInt32 = 0x1124   // mains mute in surround mode
     static let a2md: UInt32 = 0x1128   // "Expanded Mix Mode (ADAT 2)"

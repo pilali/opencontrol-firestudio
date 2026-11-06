@@ -309,8 +309,6 @@ struct SettingsPage: View {
                         toggle(L("Talkback to digital outputs"), Reg.tbdo)
                         toggle(L("Copy 1/2 to main L/R in surround mode"), Reg.dcmt)
                         toggle(L("Mains active in surround mode (unchecked = mains muted)"), Reg.mtss)
-                        Text(L("Sample rate: %d Hz (change it in Audio MIDI Setup)", m.sampleRate))
-                            .font(.caption).foregroundColor(.secondary)
                     }.padding(6).frame(maxHeight: .infinity, alignment: .top)
                 }.fixedSize(horizontal: true, vertical: false)
                 DriverBox(driver: driver)
@@ -496,17 +494,45 @@ struct DriverBox: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
                 Text(L("Clock source")).font(.callout.weight(.semibold))
-                Picker(L("Clock source"), selection: Binding(get: { driver.clock ?? 8 }, set: { driver.setClock($0) })) {
-                    ForEach(DriverSettings.clockSources, id: \.item) { Text($0.name).tag($0.item) }
+                Picker(L("Clock source"), selection: Binding(get: { clockChoice }, set: { setClockChoice($0) })) {
+                    ForEach(DriverSettings.clockChoices, id: \.choice) { Text($0.name).tag($0.choice) }
                 }
                 .labelsHidden()
                 .frame(maxWidth: 160)
                 .disabled(driver.busy || driver.clock == nil)
                 lockBadge
             }
+            HStack(spacing: 10) {
+                Text(L("Sample rate")).font(.callout.weight(.semibold))
+                Picker(L("Sample rate"), selection: Binding(get: { driver.rate ?? 0 }, set: { driver.setRate($0) })) {
+                    ForEach(DriverSettings.sampleRates, id: \.self) { r in
+                        Text(verbatim: String(format: "%g kHz", r / 1000)).tag(r)
+                    }
+                }
+                .labelsHidden()
+                .frame(maxWidth: 160)
+                .disabled(driver.busy || driver.rate == nil)
+            }
+            Text(L("Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device."))
+                .font(.caption).foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Text(L("Use Internal unless another device is the clock master. When the interface follows S/PDIF, ADAT or word clock, it stays muted until it receives a valid signal on that input."))
                 .font(.caption).foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    var clockChoice: DriverSettings.ClockChoice {
+        let item = driver.clock ?? 8
+        return item == 5 ? .adat(port: m.clockMasterInfo?.adatPort == 1 ? 1 : 0) : .item(item)
+    }
+
+    func setClockChoice(_ c: DriverSettings.ClockChoice) {
+        switch c {
+        case .item(let item): driver.setClock(item)
+        case .adat(let port):
+            driver.setClock(5)
+            m.setADATClockPort(port)
         }
     }
 
@@ -515,6 +541,10 @@ struct DriverBox: View {
             HStack(spacing: 4) {
                 Circle().fill(locked ? Color.green : Color.red).frame(width: 8, height: 8)
                 Text(locked ? L("Locked") : L("Not locked")).font(.caption)
+                if locked, m.sampleRate > 0 {
+                    Text(verbatim: String(format: "· %g kHz", Double(m.sampleRate) / 1000))
+                        .font(.caption.monospacedDigit()).foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -608,8 +638,8 @@ struct UnitsBox: View {
             let src: String
             switch u.clockSelect {
             case 0x00: src = "S/PDIF"
-            case 0x01: src = "ADAT"
-            case 0x02: src = "Word Clock"
+            case 0x05: src = u.adatPort == 1 ? "ADAT 2" : "ADAT 1"
+            case 0x07: src = "Word Clock"
             case 0x0C: src = L("Internal")
             default: src = "?"
             }

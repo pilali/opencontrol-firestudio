@@ -119,10 +119,20 @@ enum DriverSettings {
 
     // MARK: Clock source (through Core Audio, like Audio MIDI Setup)
 
-    /// Core Audio clock source items published by the driver. Items 3-6 are "Unused" and item 7 is a
-    /// duplicate "Internal" (DICE source 7); the real internal clock is item 8 (DICE source 0x0C).
-    static let clockSources: [(item: UInt32, name: String)] = [
-        (8, L("Internal")), (0, "S/PDIF"), (1, "ADAT"), (2, "Word Clock")]
+    /// Core Audio clock source items published by the driver. Item n selects DICE source n (8 selects the
+    /// internal clock, DICE 0x0C). The names the driver publishes do not match the sources: the real ADAT
+    /// input is item 5 ("Unused") and the real word clock input is item 7 (the first "Internal"); items 1
+    /// and 2 ("ADAT", "Word Clock") are DICE AES receivers the FireStudio does not have. See
+    /// docs/driver-settings.md.
+    /// Clock choices offered in the app. ADAT 1 and ADAT 2 are both item 5; the optical port is chosen in the
+    /// mixer register 0x111C (FireControl's clock map: Internal 12, BNC 7, S/PDIF 0, ADAT 1 and ADAT 2 = 5).
+    enum ClockChoice: Hashable {
+        case item(UInt32)
+        case adat(port: UInt32)
+    }
+    static let clockChoices: [(choice: ClockChoice, name: String)] = [
+        (.item(8), L("Internal")), (.item(0), "S/PDIF"), (.adat(port: 0), "ADAT 1"), (.adat(port: 1), "ADAT 2"),
+        (.item(7), "Word Clock")]
 
     private static func device() -> AudioDeviceID? {
         var uid = "PaeFireStudioAudioEngine:0" as CFString
@@ -156,6 +166,32 @@ enum DriverSettings {
         var addr = clockAddr
         var v = item
         return AudioObjectSetPropertyData(dev, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &v) == noErr
+    }
+
+    // MARK: Sample rate (through Core Audio, like Audio MIDI Setup)
+
+    /// Rates the driver publishes for the FireStudio (all its stream formats).
+    static let sampleRates: [Double] = [44100, 48000, 88200, 96000]
+
+    private static let rateAddr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyNominalSampleRate,
+                                                             mScope: kAudioObjectPropertyScopeGlobal,
+                                                             mElement: kAudioObjectPropertyElementMain)
+
+    static func nominalRate() -> Double? {
+        guard let dev = device() else { return nil }
+        var addr = rateAddr
+        var v: Float64 = 0
+        var size = UInt32(MemoryLayout<Float64>.size)
+        return AudioObjectGetPropertyData(dev, &addr, 0, nil, &size, &v) == noErr && v > 0 ? v : nil
+    }
+
+    /// The driver restarts streaming on every unit of the bus: the audio stops briefly.
+    @discardableResult
+    static func setNominalRate(_ rate: Double) -> Bool {
+        guard let dev = device() else { return false }
+        var addr = rateAddr
+        var v = Float64(rate)
+        return AudioObjectSetPropertyData(dev, &addr, 0, nil, UInt32(MemoryLayout<Float64>.size), &v) == noErr
     }
 
     /// IOAudioEngineState of the driver's engine: 0 stopped, 1 running, 2 paused, 3 resumed.
@@ -208,6 +244,7 @@ final class DriverModel: ObservableObject {
     @Published private(set) var busy = false
     @Published private(set) var errors: ErrorCounts?
     @Published private(set) var clock: UInt32?
+    @Published private(set) var rate: Double?
     private var timer: Timer?
 
     func refresh() {
@@ -216,11 +253,12 @@ final class DriverModel: ObservableObject {
             let o = DriverSettings.safetyOffsets()
             let e = DriverSettings.errorCounts()
             let c = DriverSettings.clockSource()
-            DispatchQueue.main.async { self.mode = m; self.offsets = o; self.errors = e; self.clock = c }
+            let r = DriverSettings.nominalRate()
+            DispatchQueue.main.async { self.mode = m; self.offsets = o; self.errors = e; self.clock = c; self.rate = r }
         }
     }
 
-    /// Polls the counters and the clock source while the settings page is visible.
+    /// Polls the counters, the clock source and the sample rate while the settings page is visible.
     func start() {
         refresh()
         timer?.invalidate()
@@ -228,10 +266,12 @@ final class DriverModel: ObservableObject {
             DispatchQueue.global(qos: .utility).async {
                 let e = DriverSettings.errorCounts()
                 let c = DriverSettings.clockSource()
+                let r = DriverSettings.nominalRate()
                 DispatchQueue.main.async {
                     guard let self = self else { return }
                     if e != self.errors { self.errors = e }
                     if c != self.clock, !self.busy { self.clock = c }
+                    if r != self.rate, !self.busy { self.rate = r }
                 }
             }
         }
@@ -257,6 +297,19 @@ final class DriverModel: ObservableObject {
             let c = DriverSettings.clockSource()
             let o = DriverSettings.safetyOffsets()
             DispatchQueue.main.async { self.clock = c; self.offsets = o; self.busy = false }
+        }
+    }
+
+    func setRate(_ newRate: Double) {
+        guard newRate != rate, !busy else { return }
+        busy = true
+        rate = newRate
+        DispatchQueue.global(qos: .userInitiated).async {
+            DriverSettings.setNominalRate(newRate)
+            Thread.sleep(forTimeInterval: 1.5)
+            let r = DriverSettings.nominalRate()
+            let o = DriverSettings.safetyOffsets()
+            DispatchQueue.main.async { self.rate = r; self.offsets = o; self.busy = false }
         }
     }
 

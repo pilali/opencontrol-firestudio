@@ -80,14 +80,15 @@ Main and the headphones copy Out 1/2.
 |---|---|---|
 | `0x1114` | `dcmt` | Copy 1/2 to main L/R in surround mode |
 | `0x1118` | `bnct` | Terminate BNC |
-| `0x111C` | `clks` | derived from the clock source (written by the driver) |
+| `0x111C` | `clks` | ADAT port used when the clock source is ADAT: 0 = ADAT 1, 1 = ADAT 2 |
 | `0x1120` | `tbdo` | Talkback to Digital Outs |
 | `0x1124` | `mtss` | mains mute in surround mode |
 | `0x1128` | `a2md` | Expanded Mix Mode (ADAT 2) |
 | `0x1164` | `dmmm` | MSR mix mode |
 | `0x1154`–`0x1164` | — | MSR state (read) |
 
-These labels come from FireControl; their individual effect has not been verified.
+These labels come from FireControl; their individual effect has not been verified, except `bnct` and the
+meaning of `clks`, read from FireControl's clock source handling (see [driver-settings.md](driver-settings.md#clock-source)).
 
 ## Channel names (`0x1168`, 53 × 12 bytes)
 

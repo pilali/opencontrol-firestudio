@@ -45,7 +45,6 @@
 "Rename…" = "Byt namn…";
 "Replace with the current state" = "Ersätt med aktuellt tillstånd";
 "Restore a backup…" = "Återställ en säkerhetskopia…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Samplingsfrekvens: %d Hz (ändra i Ljud-MIDI-inställning)";
 "Save current state…" = "Spara aktuellt tillstånd…";
 "Save failed" = "Det gick inte att spara";
 "Saved: %@" = "Sparad: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Ett högre läge ger lite mer latens men gör uppspelningen tåligare mot avbrott och knaster. Bytet startar om ljudströmmen kort; PreSonus-drivrutinen kommer ihåg inställningen.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus-drivrutinen är inte inläst: driftläget är inte tillgängligt.";
 "Clock source" = "Klockkälla";
+"Sample rate" = "Samplingsfrekvens";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Att ändra samplingsfrekvensen avbryter ljudet kort på alla enheter. När gränssnittet följer en extern klocka, välj källenhetens frekvens.";
 "Internal" = "Intern";
 "Locked" = "Låst";
 "Not locked" = "Inte låst";

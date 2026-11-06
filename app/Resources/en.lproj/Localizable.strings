@@ -45,7 +45,6 @@
 "Rename…" = "Rename…";
 "Replace with the current state" = "Replace with the current state";
 "Restore a backup…" = "Restore a backup…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Sample rate: %d Hz (change it in Audio MIDI Setup)";
 "Save current state…" = "Save current state…";
 "Save failed" = "Save failed";
 "Saved: %@" = "Saved: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting.";
 "PreSonus driver not loaded: operation mode unavailable." = "PreSonus driver not loaded: operation mode unavailable.";
 "Clock source" = "Clock source";
+"Sample rate" = "Sample rate";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device.";
 "Internal" = "Internal";
 "Locked" = "Locked";
 "Not locked" = "Not locked";

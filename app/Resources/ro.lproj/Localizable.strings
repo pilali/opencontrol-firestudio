@@ -45,7 +45,6 @@
 "Rename…" = "Redenumește…";
 "Replace with the current state" = "Înlocuiește cu starea curentă";
 "Restore a backup…" = "Restaurează o copie de rezervă…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Rată de eșantionare: %d Hz (modific-o în Configurare audio MIDI)";
 "Save current state…" = "Salvează starea curentă…";
 "Save failed" = "Salvarea a eșuat";
 "Saved: %@" = "Salvat: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Un mod mai mare adaugă puțină latență, dar face redarea mai rezistentă la întreruperi și pârâituri. Schimbarea repornește scurt fluxul audio; driverul PreSonus reține setarea.";
 "PreSonus driver not loaded: operation mode unavailable." = "Driverul PreSonus nu este încărcat: modul de funcționare nu este disponibil.";
 "Clock source" = "Sursă de ceas";
+"Sample rate" = "Frecvență de eșantionare";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Schimbarea frecvenței de eșantionare întrerupe scurt sunetul pe toate unitățile. Când interfața urmează un ceas extern, alegeți frecvența dispozitivului sursă.";
 "Internal" = "Intern";
 "Locked" = "Sincronizat";
 "Not locked" = "Nesincronizat";

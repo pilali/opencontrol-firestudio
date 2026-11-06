@@ -45,7 +45,6 @@
 "Rename…" = "Přejmenovat…";
 "Replace with the current state" = "Nahradit aktuálním stavem";
 "Restore a backup…" = "Obnovit zálohu…";
-"Sample rate: %d Hz (change it in Audio MIDI Setup)" = "Vzorkovací frekvence: %d Hz (změňte v Nastavení Audio MIDI)";
 "Save current state…" = "Uložit aktuální stav…";
 "Save failed" = "Uložení se nezdařilo";
 "Saved: %@" = "Uloženo: %@";
@@ -72,6 +71,8 @@
 "A higher mode adds a little latency but makes playback more robust against dropouts and crackles. Changing it briefly restarts the audio stream; the PreSonus driver remembers the setting." = "Vyšší režim přidá trochu latence, ale přehrávání bude odolnější proti výpadkům a praskání. Změna krátce restartuje audio stream; ovladač PreSonus si nastavení pamatuje.";
 "PreSonus driver not loaded: operation mode unavailable." = "Ovladač PreSonus není načten: provozní režim není k dispozici.";
 "Clock source" = "Zdroj hodin";
+"Sample rate" = "Vzorkovací frekvence";
+"Changing the sample rate briefly interrupts the audio on every unit. When the interface follows an external clock, choose the rate of the source device." = "Změna vzorkovací frekvence krátce přeruší zvuk na všech jednotkách. Pokud rozhraní sleduje externí hodiny, zvolte frekvenci zdrojového zařízení.";
 "Internal" = "Interní";
 "Locked" = "Zamčeno";
 "Not locked" = "Nezamčeno";
