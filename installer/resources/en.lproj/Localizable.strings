@@ -1,5 +1,5 @@
 "TITLE" = "OpenControl for PreSonus FireStudio";
 "DRIVERS_TITLE" = "PreSonus FireWire drivers";
 "DRIVERS_DESC" = "PaeFireStudio kext, daemon and MIDI driver, extracted unmodified from the official Universal Control 3.4.2 installer. Intel Macs only. A restart and an approval in Security & Privacy may be required.";
-"APP_TITLE" = "FireStudio Mixer";
+"APP_TITLE" = "OpenControl";
 "APP_DESC" = "Mixer, routing, meters and presets for the FireStudio 26x26 (replaces FireControl / Universal Control).";

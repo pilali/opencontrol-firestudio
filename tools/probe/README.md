@@ -1,7 +1,7 @@
 # Probe tools
 
 Small C tools to explore the FireStudio mixer area (`0xFFFFE0700000`).
-Quit the FireStudio Mixer app before using them: FireWire access is exclusive.
+They open the unit exclusively, which briefly restarts the audio stream: use them while nothing is playing.
 
 ```sh
 make            # builds build/raw, build/dumpr, build/scan, build/wq, build/opmode, build/units

@@ -13,8 +13,9 @@ typedef struct fs_unit fs_unit;     /* one open unit (opaque) */
    (at most `max` GUIDs are written). */
 int  fs_list(uint64_t *guids, int max);
 
-/* Opens the unit with this GUID (0 = the first one found). On failure returns NULL and sets *err:
-   -1 not found, -2/-3 plug-in error, -4 in use by another program (access is exclusive). */
+/* Opens the unit with this GUID (0 = the first one found). The unit itself is not opened (that would restart
+   the audio streams): transactions go through the Mac's local FireWire node. On failure returns NULL and sets
+   *err: -1 not found, -2 plug-in error, -3 local node unavailable. */
 fs_unit *fs_open(uint64_t guid, int *err);
 void     fs_close(fs_unit *u);
 uint64_t fs_guid(const fs_unit *u);

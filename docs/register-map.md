@@ -13,8 +13,18 @@ Reconstructed by reading the device and by analysing, for interoperability purpo
 | PreSonus mixer area | `0xFFFF E070 0000`, 0x1428 bytes (1290 quadlets) |
 
 Access uses plain IEEE 1394 asynchronous transactions (quadlet reads/writes, big-endian on the bus).
-They work from user space (`IOFireWireLib`) alongside the audio driver. Opening the
-`IOFireWireDevice` interface is exclusive between user clients.
+They work from user space (`IOFireWireLib`) alongside the audio driver.
+
+**Do not open the unit's `IOFireWireDevice` interface.** Opening it is exclusive, and IOFireWireFamily then
+suspends and resumes the PreSonus driver attached to the unit, which restarts the audio streams. OpenControl
+instead opens the Mac's own node (`IOFireWireLocalNode`) and sends each transaction to the unit's current node
+ID, taken with the bus generation from the unit's interface, which stays unopened (`GetGenerationAndNodeID`,
+`failOnReset` = true, retried after a bus reset).
+
+**Release every IOFireWireLib interface before the process exits.** When a process exits with one still alive,
+the kernel's cleanup resets the FireWire bus two or three times, 2 s apart, and the driver restarts the streams
+after each reset. OpenControl releases them in an `atexit` handler and turns SIGTERM, SIGINT and SIGHUP into
+`exit()`.
 
 The firmware **stores the settings itself**: they survive a power cycle. Quadlet `0x0008` increments
 on every write the firmware accepts.

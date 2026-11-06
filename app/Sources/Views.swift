@@ -415,11 +415,22 @@ struct ContentView: View {
 }
 
 @main
-struct FireStudioMixerApp: App {
+struct OpenControlApp: App {
+    /// SIGTERM, SIGINT and SIGHUP end the app through exit(), so the FireWire layer can close its access
+    /// (see fsfw.c): otherwise the bus is reset and the audio stream restarts.
+    private static let signalSources: [DispatchSourceSignal] = [SIGTERM, SIGINT, SIGHUP].map { sig in
+        signal(sig, SIG_IGN)
+        let src = DispatchSource.makeSignalSource(signal: sig, queue: .main)
+        src.setEventHandler { exit(0) }
+        src.resume()
+        return src
+    }
+    init() { _ = OpenControlApp.signalSources }
+
     @StateObject private var model = MixerModel()
     @StateObject private var presets = PresetStore()
     var body: some Scene {
-        WindowGroup("FireStudio Mixer") {
+        WindowGroup("OpenControl") {
             ContentView().environmentObject(model).environmentObject(presets)
         }
     }

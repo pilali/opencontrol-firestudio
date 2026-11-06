@@ -65,7 +65,7 @@ final class MixerModel: ObservableObject {
             let preferred = UInt64(UserDefaults.standard.string(forKey: MixerModel.unitKey) ?? "", radix: 16) ?? 0
             let target = found.contains(preferred) ? preferred : (found.first ?? 0)
             var err: Int32 = 0
-            // A unit already open for its clock status is reused (access is exclusive, even within the app).
+            // A unit already open for its clock status is reused.
             guard let u = self.others.removeValue(forKey: target) ?? fs_open(target, &err) else {
                 let msg = err == -4 ? L("FireStudio in use by another program (exclusive access)")
                                     : L("FireStudio not found (check the cable or adapter)")
@@ -427,10 +427,13 @@ final class MeterStore {
 }
 
 enum Backup {
-    /// ~/Library/Application Support/FireStudioMixer
+    /// ~/Library/Application Support/OpenControl
     static var appSupport: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("FireStudioMixer", isDirectory: true)
+        let url = base.appendingPathComponent("OpenControl", isDirectory: true)
+        // Versions up to 1.2 were named "FireStudio Mixer" and used this folder name.
+        migrate(from: base.appendingPathComponent("FireStudioMixer", isDirectory: true), to: url)
+        return url
     }
 
     /// GUID of the connected unit: backups and presets are stored per unit.
@@ -438,7 +441,7 @@ enum Backup {
         didSet { if let g = unit { adoptLegacyFolders(for: g) } }
     }
 
-    /// ~/Library/Application Support/FireStudioMixer/Units/<GUID>
+    /// ~/Library/Application Support/OpenControl/Units/<GUID>
     static func unitFolder(_ guid: UInt64) -> URL {
         appSupport.appendingPathComponent("Units", isDirectory: true)
             .appendingPathComponent(String(format: "%016llX", guid), isDirectory: true)

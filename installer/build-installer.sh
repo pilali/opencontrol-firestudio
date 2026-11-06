@@ -3,10 +3,10 @@
 #
 # This repository contains no PreSonus binaries. This script extracts the FireWire drivers
 # from the official Universal Control 3.4.2 installer (downloaded by you from PreSonus),
-# without modifying them, and packages them together with the FireStudio Mixer app.
+# without modifying them, and packages them together with the OpenControl app.
 #
 # Usage:
-#   installer/build-installer.sh [--app "FireStudio Mixer.app"] [--force] <source>
+#   installer/build-installer.sh [--app "OpenControl.app"] [--force] <source>
 #     <source>: PreSonus_UniversalControl_v3_4_2_*.dmg, or "PreSonus FireWire Driver.pkg"
 #     --app   : app to include (default: app/build, built if missing)
 #     --force : accept a driver version other than 4.2.1
@@ -88,12 +88,12 @@ pkgutil --flatten "$WORK/expanded/FW MIDI Driver.pkg" "$WORK/pkgs/presonus-fw-mi
 
 # 4. App
 if [ -z "$APP" ]; then
-  APP="$ROOT/app/build/FireStudio Mixer.app"
+  APP="$ROOT/app/build/OpenControl.app"
   if [ ! -d "$APP" ]; then say "Building the app…"; make -C "$ROOT/app" >/dev/null; fi
 fi
 [ -d "$APP" ] || { echo "App not found: $APP" >&2; exit 1; }
-say "App: $APP ($(lipo -archs "$APP/Contents/MacOS/FireStudioMixer"))"
-pkgbuild --quiet --component "$APP" --install-location /Applications \
+say "App: $APP ($(lipo -archs "$APP/Contents/MacOS/OpenControl"))"
+pkgbuild --quiet --component "$APP" --install-location /Applications --scripts "$ROOT/app/pkg-scripts" \
   --identifier io.github.opencontrol-firestudio.mixer --version "$VERSION" "$WORK/pkgs/opencontrol-app.pkg"
 
 # 5. Product installer

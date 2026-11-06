@@ -1,0 +1,5 @@
+#!/bin/sh
+# Versions up to 1.2 were installed as "FireStudio Mixer.app": remove that copy, now replaced by OpenControl.app.
+OLD="$2/FireStudio Mixer.app"
+[ -d "$OLD" ] && /bin/rm -rf "$OLD"
+exit 0

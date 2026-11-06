@@ -7,7 +7,7 @@ PreSonus ended support for the FireStudio 26x26 in 2015. With the FireWire drive
 product the interface still works for audio, but no software can reach its internal mixer any more:
 zero-latency monitoring, output routing and headphone feeds. OpenControl fills that gap.
 
-![FireStudio Mixer](docs/screenshot.png)
+![OpenControl](docs/screenshot.png)
 
 ## Features
 
@@ -101,10 +101,11 @@ The app talks directly to the DICE chip of the interface through asynchronous Fi
 (`IOFireWireLib`), independently of the audio driver. The protocol is documented in
 [docs/register-map.md](docs/register-map.md). Read/write probe tools are in [tools/probe](tools/probe).
 
-FireWire access is exclusive: quit the app before using the probe tools.
+The probe tools open the unit directly, which briefly restarts the audio stream; the app does not, and can
+be launched or quit during playback.
 
 Backups and presets are stored per unit, under
-`~/Library/Application Support/FireStudioMixer/Units/<GUID>/`.
+`~/Library/Application Support/OpenControl/Units/<GUID>/`.
 
 ## Disclaimer
 

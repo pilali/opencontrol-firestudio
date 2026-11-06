@@ -36,7 +36,7 @@ jobs:
 
       - name: Check architectures
         run: |
-          archs="$(lipo -archs "app/build/FireStudio Mixer.app/Contents/MacOS/FireStudioMixer")"
+          archs="$(lipo -archs "app/build/OpenControl.app/Contents/MacOS/OpenControl")"
           echo "$archs"
           [[ "$archs" == *x86_64* && "$archs" == *arm64* ]]
 
@@ -63,7 +63,7 @@ jobs:
         with:
           name: OpenControl for PreSonus FireStudio ${{ env.VERSION }}
           body: |
-            **FireStudio Mixer** app (Universal Binary x86_64 + arm64), not notarized: right-click › Open on first launch.
+            **OpenControl** app (Universal Binary x86_64 + arm64), not notarized: right-click › Open on first launch.
 
             These files **do not contain** the PreSonus drivers. For a full installer (drivers + app),
             see "Installation A" in the README: `installer/build-installer.sh <Universal Control 3.4.2 installer>`.

@@ -1,4 +1,4 @@
-// Draws the FireStudio Mixer icon (1024×1024): swift make_icon.swift <output.png>
+// Draws the OpenControl icon (1024×1024): swift make_icon.swift <output.png>
 import AppKit
 
 let S: CGFloat = 1024
