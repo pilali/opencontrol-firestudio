@@ -158,6 +158,17 @@ enum DriverSettings {
         return AudioObjectSetPropertyData(dev, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &v) == noErr
     }
 
+    /// IOAudioEngineState of the driver's engine: 0 stopped, 1 running, 2 paused, 3 resumed.
+    /// The driver can stay paused when the unit in slot 0 disappears while another unit stays on
+    /// (see docs/driver-settings.md); no audio then reaches any unit until the bus is rebuilt.
+    static func engineState() -> Int? {
+        let svc = IOServiceGetMatchingService(0, IOServiceMatching("PaeFireStudioAudioEngine"))
+        guard svc != 0 else { return nil }
+        defer { IOObjectRelease(svc) }
+        return IORegistryEntryCreateCFProperty(svc, "IOAudioEngineState" as CFString, kCFAllocatorDefault, 0)?
+            .takeRetainedValue() as? Int
+    }
+
     /// Safety offsets the driver reports to Core Audio, in samples, and the stream sample rate.
     static func safetyOffsets() -> (output: Int, input: Int, rate: Int)? {
         let svc = IOServiceGetMatchingService(0, IOServiceMatching("PaeFireStudioAudioEngine"))

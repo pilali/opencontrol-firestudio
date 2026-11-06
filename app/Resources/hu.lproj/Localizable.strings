@@ -91,3 +91,4 @@
 "Clock master (%@)" = "Órajel-mester (%@)";
 "Follows the clock master" = "Követi az órajel-mestert";
 "Not in the audio device" = "Nincs a hangeszközben";
+"The PreSonus driver has paused the audio, usually after a unit was switched off while another stayed on. Unplug the FireWire cable from the Mac, wait ten seconds and plug it back in." = "A PreSonus-illesztőprogram szüneteltette a hangot, általában mert az egyik egységet kikapcsolták, miközben egy másik bekapcsolva maradt. Húzza ki a FireWire-kábelt a Macből, várjon tíz másodpercet, majd dugja vissza.";

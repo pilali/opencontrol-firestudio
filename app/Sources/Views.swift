@@ -390,6 +390,17 @@ struct ContentView: View {
                 }.pickerStyle(.segmented).frame(width: 380)
             }
             .padding(10)
+            if m.engineStuck {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
+                    Text(L("The PreSonus driver has paused the audio, usually after a unit was switched off while another stayed on. Unplug the FireWire cable from the Mac, wait ten seconds and plug it back in."))
+                        .font(.callout).foregroundColor(Theme.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(8).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.18)).cornerRadius(6)
+                .padding(.horizontal, 12).padding(.bottom, 8)
+            }
             if m.connected {
                 PresetBar().padding(.horizontal, 12).padding(.bottom, 8)
             }

@@ -101,6 +101,14 @@ powered off the remaining unit takes over on its internal clock, and the preferr
 as soon as it reappears on the bus. Units take driver slots, and therefore Core Audio channel ranges (1–26,
 27–52…), in the order the driver finds them.
 
+**Driver bug: switching off the unit in slot 0.** When the unit in driver slot 0 disappears while another unit
+stays on, the remaining unit keeps its slot (1) and the driver's audio engine stays paused
+(`IOAudioEngineState` = 2 on `PaeFireStudioAudioEngine`): no audio reaches the interface, even after relaunching
+the audio application. A bus reset, `SetOpMode` or a sample rate change do not resume it. Unplugging the FireWire
+cable from the Mac for a few seconds does: the driver forgets every unit and the remaining one takes slot 0.
+OpenControl shows a warning with this advice when the engine stays paused for five seconds. To avoid it, switch
+all units off together.
+
 ### `GetConfigInfo` (selector 3, 0xEE8-byte struct out, `BUS_CONFIG`)
 
 | Offset | Content |

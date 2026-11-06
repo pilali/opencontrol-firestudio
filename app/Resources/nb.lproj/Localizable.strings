@@ -91,3 +91,4 @@
 "Clock master (%@)" = "Klokkemaster (%@)";
 "Follows the clock master" = "Følger klokkemasteren";
 "Not in the audio device" = "Ikke i lydenheten";
+"The PreSonus driver has paused the audio, usually after a unit was switched off while another stayed on. Unplug the FireWire cable from the Mac, wait ten seconds and plug it back in." = "PreSonus-driveren har satt lyden på pause, vanligvis fordi en enhet ble slått av mens en annen forble på. Koble FireWire-kabelen fra Mac-en, vent ti sekunder og koble den til igjen.";

@@ -91,3 +91,4 @@
 "Clock master (%@)" = "Główny zegar (%@)";
 "Follows the clock master" = "Synchronizuje się z głównym zegarem";
 "Not in the audio device" = "Poza urządzeniem audio";
+"The PreSonus driver has paused the audio, usually after a unit was switched off while another stayed on. Unplug the FireWire cable from the Mac, wait ten seconds and plug it back in." = "Sterownik PreSonus wstrzymał dźwięk, zwykle dlatego, że jedno urządzenie zostało wyłączone, a inne pozostało włączone. Odłącz kabel FireWire od Maca, odczekaj dziesięć sekund i podłącz go ponownie.";

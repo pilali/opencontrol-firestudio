@@ -91,3 +91,4 @@
 "Clock master (%@)" = "Saat ana birimi (%@)";
 "Follows the clock master" = "Saat ana birimini izliyor";
 "Not in the audio device" = "Ses aygıtında değil";
+"The PreSonus driver has paused the audio, usually after a unit was switched off while another stayed on. Unplug the FireWire cable from the Mac, wait ten seconds and plug it back in." = "PreSonus sürücüsü sesi duraklattı; genellikle bir birim kapatılırken diğeri açık kaldığında olur. FireWire kablosunu Mac'ten çıkarın, on saniye bekleyin ve yeniden takın.";

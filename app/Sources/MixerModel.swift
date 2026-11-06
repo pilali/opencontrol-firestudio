@@ -33,6 +33,9 @@ final class MixerModel: ObservableObject {
     @Published private(set) var unitInfo: [UnitInfo] = []
     /// GUID of the unit the driver uses as clock master.
     @Published private(set) var clockMaster: UInt64?
+    /// The driver's audio engine has stayed paused for several seconds (driver bug, see DriverSettings.engineState).
+    @Published private(set) var engineStuck = false
+    private var pausedPolls = 0
     private static let unitKey = "unitGUID"
     /// DICE global STATUS bit 0: the interface is locked to the selected clock source.
     @Published private(set) var clockLocked: Bool?
@@ -173,6 +176,7 @@ final class MixerModel: ObservableObject {
                 infos.append(info)
             }
             let cfg = DriverSettings.busConfig()
+            let engine = DriverSettings.engineState()
             for i in infos.indices {
                 if let d = cfg?.devices.first(where: { $0.guid == infos[i].guid }) {
                     infos[i].name = d.name; infos[i].slot = d.slot
@@ -182,6 +186,9 @@ final class MixerModel: ObservableObject {
                 if self.units != found { self.units = found }
                 if self.unitInfo != infos { self.unitInfo = infos }
                 if self.clockMaster != cfg?.master { self.clockMaster = cfg?.master }
+                self.pausedPolls = engine == 2 ? self.pausedPolls + 1 : 0
+                let stuck = self.pausedPolls >= 5
+                if self.engineStuck != stuck { self.engineStuck = stuck }
                 let locked = infos.first { $0.guid == current }?.locked
                 if self.clockLocked != locked { self.clockLocked = locked }
                 if locked == true, rate > 0, self.sampleRate != Int(rate) { self.sampleRate = Int(rate) }

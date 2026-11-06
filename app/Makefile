@@ -34,7 +34,7 @@ $(ICNS): tools/make_icon.swift
 	done
 	iconutil -c icns build/AppIcon.iconset -o $@
 
-$(BIN): $(foreach a,$(ARCHS),build/OpenControl-$(a)) Info.plist $(ICNS) $(wildcard Resources/*.lproj/*.strings)
+$(BIN): $(foreach a,$(ARCHS),build/OpenControl-$(a)) Info.plist ../VERSION $(ICNS) $(wildcard Resources/*.lproj/*.strings)
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
 	sed -e 's/__VERSION__/$(VERSION)/' -e 's/__BUILD__/$(BUILD)/' Info.plist > "$(APP)/Contents/Info.plist"
 	cp $(ICNS) "$(APP)/Contents/Resources/AppIcon.icns"
