@@ -73,7 +73,7 @@ mapping:
 | 1 | ADAT | `0x201` | AES receiver 2, not wired on the FireStudio | never locks |
 | 2 | Word Clock | `0x202` | AES receiver 3, not wired on the FireStudio | never locks |
 | 3, 4, 6 | Unused | — | — | — |
-| 5 | Unused | `0x205` | **ADAT**, port chosen by mixer register `0x111C` | yes (ADAT 1) |
+| 5 | Unused | `0x205` | **ADAT**, port chosen by mixer register `0x111C` | yes (ADAT 1 and ADAT 2) |
 | 7 | Internal | `0x207` | **Word clock** (BNC) | yes |
 | 8 | Internal | `0x20C` | internal clock | yes |
 
@@ -82,7 +82,7 @@ Internal → 12, BNC → 7, S/PDIF → 0, ADAT 1 → 5, ADAT 2 → 5. For ADAT, 
 register `0x111C` (`clks`): 0 for ADAT 1, 1 for ADAT 2, which selects the optical port the unit syncs to.
 
 OpenControl offers Internal (8), S/PDIF (0), ADAT 1 (5, `0x111C` = 0), ADAT 2 (5, `0x111C` = 1) and
-Word Clock (7). The register is written on the clock master. ADAT 2 has not been tested yet.
+Word Clock (7). The register is written on the clock master. ADAT 1 and ADAT 2 have both been tested.
 
 How this was verified: a second FireStudio, standalone on its internal clock, sends ADAT (both optical ports)
 and word clock (BNC) to the unit under test, which runs alone on the bus at 48 kHz.
